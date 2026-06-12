@@ -6,6 +6,8 @@ import { GradientBackground } from '../src/components/GradientBackground';
 import { BackButton, Body, GlassCard, MicroLabel, Title } from '../src/components/UI';
 import { Globe, Moon, Sun } from '../src/components/Icons';
 import { Sparkle } from '../src/components/Sparkle';
+import { useRouter } from 'expo-router';
+import { Tap } from '../src/components/UI';
 import { useApp } from '../src/store';
 import { FONTS } from '../src/theme';
 import { VOICES } from '../src/data';
@@ -13,7 +15,8 @@ import { hasElevenLabsKey } from '../src/services/elevenlabs';
 import { hasClaudeKey } from '../src/services/claude';
 
 export default function SettingsScreen() {
-  const { t, palette, themeMode, setThemeMode, language, setLanguage, preferredVoice, setPreferredVoice } = useApp();
+  const { t, palette, themeMode, setThemeMode, language, setLanguage, preferredVoice, setPreferredVoice, plan } = useApp();
+  const router = useRouter();
   const dark = palette.name === 'dark';
 
   const Segment = ({
@@ -117,6 +120,15 @@ export default function SettingsScreen() {
                 })}
               </View>
             </View>
+
+            <GlassCard onPress={() => router.push('/paywall')} strong>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Sparkle size={14} color={palette.text} />
+                <Text style={{ fontFamily: FONTS.serif, fontSize: 21, color: palette.text }}>
+                  {plan === 'premium' ? t('pw_active') : t('pw_go')}
+                </Text>
+              </View>
+            </GlassCard>
 
             <GlassCard>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>

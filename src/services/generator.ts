@@ -219,14 +219,16 @@ function buildDemoScript(config: SessionConfig): { title: string; texts: string[
   const lang: Language = config.language;
   const mood = MOOD_LINES[config.mood] ?? MOOD_LINES.calm;
   const long = config.durationMin >= 10;
+  // density: how much of the session the voice fills vs. leaves to silence
+  const d = config.density === 'low' ? 0 : config.density === 'high' ? 2 : 1;
 
   const texts = [
     ...pick(OPENINGS[lang], 1, rng),
-    ...pick(BREATHING[lang], long ? 2 : 1, rng),
-    ...pick(BODY[lang], long ? 2 : 1, rng),
-    ...pick(mood[lang], long ? 3 : 2, rng),
-    ...pick(PATH_LINES[lang], 1, rng),
-    ...pick(mood[lang === 'es' ? 'es' : 'en'].slice().reverse(), long ? 1 : 0, rng),
+    ...pick(BREATHING[lang], (long ? 2 : 1) + (d === 2 ? 1 : 0), rng),
+    ...pick(BODY[lang], d === 0 ? 1 : (long ? 2 : 1) + (d === 2 ? 1 : 0), rng),
+    ...pick(mood[lang], (d === 0 ? 1 : long ? 3 : 2) + (d === 2 ? 1 : 0), rng),
+    ...pick(PATH_LINES[lang], d === 0 ? 1 : d === 2 ? 2 : 1, rng),
+    ...pick(mood[lang === 'es' ? 'es' : 'en'].slice().reverse(), long && d > 0 ? 1 : 0, rng),
     ...pick(CLOSINGS[lang], 1, rng),
   ];
   const titleBank = TITLES[config.mood] ?? TITLES.calm;

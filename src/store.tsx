@@ -23,6 +23,7 @@ interface AppState {
   language: Language;
   preferredVoice: string;
   sessions: Meditation[];
+  plan: 'free' | 'premium';
 
   setOnboarded: (v: boolean) => void;
   signIn: (u: Omit<User, 'startedAt'>) => void;
@@ -31,6 +32,7 @@ interface AppState {
   setThemeMode: (m: ThemeMode) => void;
   setLanguage: (l: Language) => void;
   setPreferredVoice: (v: string) => void;
+  setPlan: (p: 'free' | 'premium') => void;
   addSession: (m: Meditation) => void;
   toggleDownload: (id: string) => void;
 
@@ -51,6 +53,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('es');
   const [preferredVoice, setPreferredVoiceState] = useState('lua');
   const [sessions, setSessions] = useState<Meditation[]>([]);
+  const [plan, setPlanState] = useState<'free' | 'premium'>('free');
 
   useEffect(() => {
     AsyncStorage.getItem(KEY)
@@ -63,6 +66,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setLanguageState(d.language ?? 'es');
           setPreferredVoiceState(d.preferredVoice ?? 'lua');
           setSessions(d.sessions ?? []);
+          setPlanState(d.plan ?? 'free');
         }
       })
       .finally(() => setHydrated(true));
@@ -72,7 +76,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!hydrated) return;
     AsyncStorage.setItem(
       KEY,
-      JSON.stringify({ onboarded, user, themeMode, language, preferredVoice, sessions })
+      JSON.stringify({ onboarded, user, themeMode, language, preferredVoice, sessions, plan })
     ).catch(() => {});
   }, [hydrated, onboarded, user, themeMode, language, preferredVoice, sessions]);
 
@@ -94,6 +98,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     language,
     preferredVoice,
     sessions,
+    plan,
     setOnboarded: setOnboardedState,
     signIn: (u) => setUser({ ...u, startedAt: Date.now() }),
     updateUser: (patch) => setUser((prev) => (prev ? { ...prev, ...patch } : prev)),
@@ -104,6 +109,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setThemeMode: setThemeModeState,
     setLanguage: setLanguageState,
     setPreferredVoice: setPreferredVoiceState,
+    setPlan: setPlanState,
     addSession: (m) => setSessions((prev) => [m, ...prev].slice(0, 60)),
     toggleDownload: (id) =>
       setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, downloaded: !s.downloaded } : s))),

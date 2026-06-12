@@ -32,6 +32,9 @@ export default function GeneratingScreen() {
     duration?: string;
     voice?: string;
     energy?: string;
+    sound?: string;
+    hz?: string;
+    density?: string;
   }>();
   const { t, palette, language, preferredVoice, addSession } = useApp();
   const router = useRouter();
@@ -56,6 +59,9 @@ export default function GeneratingScreen() {
       energy: (params.energy as EnergyId) ?? ENERGY_FOR_MOOD[mood] ?? 'serene',
       language,
       mode: params.mode ?? 'simple',
+      soundType: (params.sound as any) ?? 'ambient',
+      hzFreq: params.hz ? Number(params.hz) : undefined,
+      density: (params.density as any) ?? 'medium',
     };
 
     const phases = setInterval(() => setPhase((p) => (p + 1) % 4), 1700);

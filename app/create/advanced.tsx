@@ -11,10 +11,10 @@ import { PathTrail } from '../../src/components/PathTrail';
 import { ArrowLeft, Moon, SpeakerWave, Sun, Sunrise, Sunset } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
 import { FONTS, RADII } from '../../src/theme';
-import { DURATIONS, ENERGIES, EnergyId, MOMENTS, MOODS, MomentId, VOICES, currentMoment } from '../../src/data';
+import { DURATIONS, ENERGIES, EnergyId, HZ_OPTIONS, MOMENTS, MOODS, MomentId, SoundType, VOICES, VoiceDensity, currentMoment } from '../../src/data';
 import { speakSample } from '../../src/services/demoAudio';
 
-const STEPS = ['mood', 'moment', 'duration', 'voice', 'energy'] as const;
+const STEPS = ['mood', 'moment', 'duration', 'voice', 'energy', 'density', 'sound'] as const;
 
 /** Module-level so React never remounts it when the selection re-renders. */
 function Chip({
@@ -52,7 +52,7 @@ function Chip({
 }
 
 export default function AdvancedScreen() {
-  const { t, palette, language, preferredVoice } = useApp();
+  const { t, palette, language, preferredVoice, plan } = useApp();
   const router = useRouter();
   const dark = palette.name === 'dark';
 
@@ -62,15 +62,28 @@ export default function AdvancedScreen() {
   const [duration, setDuration] = useState(5);
   const [voice, setVoice] = useState(preferredVoice);
   const [energy, setEnergy] = useState<EnergyId>('serene');
+  const [density, setDensity] = useState<VoiceDensity>('medium');
+  const [soundType, setSoundType] = useState<SoundType>('ambient');
+  const [hzFreq, setHzFreq] = useState(528);
 
-  const titleKeys = ['adv_mood_title', 'adv_moment_title', 'adv_duration_title', 'adv_voice_title', 'adv_energy_title'];
+  const titleKeys = ['adv_mood_title', 'adv_moment_title', 'adv_duration_title', 'adv_voice_title', 'adv_energy_title', 'adv_density_title', 'adv_sound_title'];
   const canContinue = true;
 
   const next = () => {
     if (step < STEPS.length - 1) return setStep(step + 1);
     router.push({
-      pathname: '/create/generating',
-      params: { mood, moment, duration: String(duration), voice, energy, mode: 'advanced' },
+      pathname: plan === 'free' ? '/create/ad' : '/create/generating',
+      params: {
+        mood,
+        moment,
+        duration: String(duration),
+        voice,
+        energy,
+        density,
+        sound: soundType,
+        hz: soundType === 'hz' ? String(hzFreq) : undefined,
+        mode: 'advanced',
+      },
     });
   };
 
@@ -88,7 +101,7 @@ export default function AdvancedScreen() {
             </GlassIconButton>
           )}
           <View style={{ alignItems: 'center', gap: 4 }}>
-            <MicroLabel>{t(`${['mood_label', 'moment_label', 'time_label', 'voice_label', 'energy_label'][step]}`)}</MicroLabel>
+            <MicroLabel>{t(`${['mood_label', 'moment_label', 'time_label', 'voice_label', 'energy_label', 'density_label', 'sound_label'][step]}`)}</MicroLabel>
             <Text style={{ fontFamily: FONTS.sans, fontSize: 12, color: palette.textFaint }}>
               {t('adv_step', { a: step + 1, b: STEPS.length })}
             </Text>
@@ -195,6 +208,65 @@ export default function AdvancedScreen() {
               ))}
             </View>
           )}
+
+          {step === 5 && (
+            <View style={{ gap: 14 }}>
+              {(['low', 'medium', 'high'] as VoiceDensity[]).map((d) => (
+                <Chip key={d} selected={density === d} onPress={() => setDensity(d)} grow palette={palette} dark={dark}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 16, color: palette.text }}>
+                      {t(`density_${d}`)}
+                    </Text>
+                    <Text style={{ fontFamily: FONTS.sans, fontSize: 13, color: palette.textFaint, marginTop: 2 }}>
+                      {t(`density_${d}_d`)}
+                    </Text>
+                  </View>
+                </Chip>
+              ))}
+            </View>
+          )}
+
+          {step === 6 && (
+            <View style={{ gap: 14 }}>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                {(['ambient', 'hz'] as SoundType[]).map((st) => (
+                  <View key={st} style={{ flex: 1, minWidth: 0 }}>
+                  <Chip selected={soundType === st} onPress={() => setSoundType(st)} grow palette={palette} dark={dark}>
+                    <View style={{ flex: 1, alignItems: 'center' }}>
+                      <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 15.5, color: palette.text }}>
+                        {t(st === 'ambient' ? 'sound_ambient' : 'sound_hz')}
+                      </Text>
+                      <Text style={{ fontFamily: FONTS.sans, fontSize: 12.5, color: palette.textFaint, marginTop: 2, textAlign: 'center' }}>
+                        {t(st === 'ambient' ? 'sound_ambient_d' : 'sound_hz_d')}
+                      </Text>
+                    </View>
+                  </Chip>
+                  </View>
+                ))}
+              </View>
+
+              {soundType === 'hz' && (
+                <View style={{ gap: 10, marginTop: 6 }}>
+                  {HZ_OPTIONS.map((h) => (
+                    <Chip key={h.freq} selected={hzFreq === h.freq} onPress={() => setHzFreq(h.freq)} grow palette={palette} dark={dark}>
+                      <View style={[styles.hzBadge, { borderColor: h.tint }]}>
+                        <Text style={{ fontFamily: FONTS.serif, fontSize: 15, color: palette.text }}>{h.freq}</Text>
+                        <Text style={{ fontFamily: FONTS.sans, fontSize: 9, color: palette.textFaint }}>Hz</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 15, color: palette.text }}>
+                          {h.name[language]}
+                        </Text>
+                        <Text style={{ fontFamily: FONTS.sans, fontSize: 12.5, color: palette.textFaint, marginTop: 1 }}>
+                          {h.desc[language]}
+                        </Text>
+                      </View>
+                    </Chip>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
         </ScrollView>
 
         <View style={styles.footer}>
@@ -240,6 +312,14 @@ const styles = StyleSheet.create({
   },
   chipText: { fontFamily: FONTS.sansMedium, fontSize: 14.5 },
   dot: { width: 14, height: 14, borderRadius: 7, opacity: 0.9 },
+  hzBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1.2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   voiceCard: {
     flexDirection: 'row',
     alignItems: 'center',

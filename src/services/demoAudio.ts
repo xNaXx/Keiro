@@ -40,17 +40,18 @@ function audioCtx(): AudioContext | null {
 }
 
 /** Build the pad into any BaseAudioContext (live or offline render). */
-function buildPad(ac: BaseAudioContext, destination: AudioNode, durationSec?: number) {
+function buildPad(ac: BaseAudioContext, destination: AudioNode, durationSec?: number, hz?: number) {
   const gain = ac.createGain();
   const filter = ac.createBiquadFilter();
   filter.type = 'lowpass';
-  filter.frequency.value = 600;
+  filter.frequency.value = hz ? Math.max(1200, hz * 1.6) : 600;
 
-  const freqs = [110, 164.81, 220, 329.63]; // A2, E3, A3, E4 — an open, calm fifth
+  // solfeggio mode: the pure tone, an octave below for body, a faint fifth
+  const freqs = hz ? [hz, hz / 2, hz * 1.5] : [110, 164.81, 220, 329.63];
   const nodes: AudioNode[] = [];
   freqs.forEach((f, i) => {
     const osc = ac.createOscillator();
-    osc.type = i % 2 ? 'sine' : 'triangle';
+    osc.type = hz ? 'sine' : i % 2 ? 'sine' : 'triangle';
     osc.frequency.value = f;
     osc.detune.value = (i - 1.5) * 3;
     osc.connect(filter);
@@ -75,10 +76,10 @@ function buildPad(ac: BaseAudioContext, destination: AudioNode, durationSec?: nu
   return { nodes, gain };
 }
 
-export function startAmbient() {
+export function startAmbient(hz?: number) {
   const ac = audioCtx();
   if (!ac || ambient) return;
-  ambient = buildPad(ac, ac.destination);
+  ambient = buildPad(ac, ac.destination, undefined, hz);
   ambient.gain.gain.value = 0;
   // soft fade in — nothing in Keiro starts abruptly
   ambient.gain.gain.linearRampToValueAtTime(LEVEL_FULL, ac.currentTime + 5);
@@ -144,19 +145,42 @@ export function speakLine(text: string, lang: Language, gender: 'female' | 'male
   u.volume = 1;
   const voice = pickBrowserVoice(lang, gender);
   if (voice) u.voice = voice;
-  u.onstart = () => rampAmbient(LEVEL_DUCKED, 0.7);
-  u.onend = () => rampAmbient(LEVEL_FULL, 3);
-  u.onerror = () => rampAmbient(LEVEL_FULL, 3);
+  u.onstart = () => {
+    rampAmbient(LEVEL_DUCKED, 0.7);
+    speakingListener?.(true);
+  };
+  u.onend = () => {
+    rampAmbient(LEVEL_FULL, 3);
+    speakingListener?.(false);
+  };
+  u.onerror = () => {
+    rampAmbient(LEVEL_FULL, 3);
+    speakingListener?.(false);
+  };
   // safety: if onend never fires (Chrome bug), un-duck after an estimate
   const estMs = Math.max(3000, text.length * 90);
   setTimeout(() => {
-    if (!synth.speaking) rampAmbient(LEVEL_FULL, 3);
+    if (!synth.speaking) {
+      rampAmbient(LEVEL_FULL, 3);
+      speakingListener?.(false);
+    }
   }, estMs);
   synth.speak(u);
 }
 
+let speakingListener: ((speaking: boolean) => void) | null = null;
+
+/** Subscribe to voice activity (drives the Siri-like orb in the player). */
+export function onSpeaking(cb: (speaking: boolean) => void): () => void {
+  speakingListener = cb;
+  return () => {
+    if (speakingListener === cb) speakingListener = null;
+  };
+}
+
 export function stopSpeech() {
   if (isWeb && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  speakingListener?.(false);
 }
 
 /** Short sample used by the voice-preview buttons. */
@@ -177,12 +201,12 @@ export function demoAudioAvailable(): boolean {
  * With an ElevenLabs key connected the download is the real narrated mp3
  * instead — this is the fallback so "save offline" always yields audio.
  */
-export async function renderAmbientWav(durationSec: number): Promise<Blob | null> {
+export async function renderAmbientWav(durationSec: number, hz?: number): Promise<Blob | null> {
   if (!isWeb || typeof OfflineAudioContext === 'undefined') return null;
   const rate = 22050;
   const total = Math.max(10, Math.round(durationSec));
   const oac = new OfflineAudioContext(1, rate * total, rate);
-  const { gain } = buildPad(oac, oac.destination, total);
+  const { gain } = buildPad(oac, oac.destination, total, hz);
   gain.gain.setValueAtTime(0, 0);
   gain.gain.linearRampToValueAtTime(0.35, 6); // louder than live: it plays alone
   gain.gain.setValueAtTime(0.35, Math.max(6, total - 10));
