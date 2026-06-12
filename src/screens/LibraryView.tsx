@@ -2,18 +2,18 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GradientBackground } from '../../src/components/GradientBackground';
-import { MoodIcon } from '../../src/components/MoodIcon';
-import { Body, GlassCard, HeaderActions, MicroLabel, Tap, Title } from '../../src/components/UI';
-import { Check, Download } from '../../src/components/Icons';
-import { Sparkle } from '../../src/components/Sparkle';
-import { Brand } from '../../src/components/KeiroLogo';
-import { SwipeNav } from '../../src/components/Motion';
-import { useApp } from '../../src/store';
-import { FONTS } from '../../src/theme';
-import { MOODS, Meditation } from '../../src/data';
+import { GradientBackground } from '../components/GradientBackground';
+import { MoodIcon } from '../components/MoodIcon';
+import { Body, GlassCard, HeaderActions, MicroLabel, Tap, Title } from '../components/UI';
+import { Check, Download } from '../components/Icons';
+import { Sparkle } from '../components/Sparkle';
+import { Brand } from '../components/KeiroLogo';
 
-export default function LibraryScreen() {
+import { useApp } from '../store';
+import { FONTS } from '../theme';
+import { MOODS, Meditation } from '../data';
+
+export function LibraryView() {
   const { t, palette, sessions, toggleDownload, language } = useApp();
   const router = useRouter();
   const [tab, setTab] = useState<'offline' | 'history'>('offline');
@@ -54,7 +54,6 @@ export default function LibraryScreen() {
 
   return (
     <GradientBackground>
-      <SwipeNav left="/" right="/profile">
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.topRow}>
@@ -105,7 +104,6 @@ export default function LibraryScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
-      </SwipeNav>
     </GradientBackground>
   );
 }

@@ -30,17 +30,17 @@ export function Tap({
 
   const down = () => {
     pressed.current = true;
-    Animated.timing(scale, { toValue: scaleTo, duration: 110, useNativeDriver: true }).start();
+    Animated.timing(scale, { toValue: scaleTo, duration: 150, useNativeDriver: true }).start();
   };
   const up = () => {
     pressed.current = false;
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 9 }).start();
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 8, bounciness: 2 }).start();
   };
   // mouse clicks are near-instant: guarantee a visible pulse anyway
   const pulse = () => {
     Animated.sequence([
-      Animated.timing(scale, { toValue: scaleTo - 0.02, duration: 90, useNativeDriver: true }),
-      Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 9 }),
+      Animated.timing(scale, { toValue: scaleTo - 0.01, duration: 140, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 8, bounciness: 2 }),
     ]).start();
   };
 

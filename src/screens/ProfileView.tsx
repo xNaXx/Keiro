@@ -3,16 +3,16 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { GradientBackground } from '../../src/components/GradientBackground';
-import { GlassCard, HeaderActions, MicroLabel, PrimaryButton, Tap } from '../../src/components/UI';
-import { Camera, Logout, Pencil } from '../../src/components/Icons';
-import { PathTrail } from '../../src/components/PathTrail';
-import { Brand } from '../../src/components/KeiroLogo';
-import { SwipeNav } from '../../src/components/Motion';
-import { useApp } from '../../src/store';
-import { FONTS, RADII } from '../../src/theme';
+import { GradientBackground } from '../components/GradientBackground';
+import { GlassCard, HeaderActions, MicroLabel, PrimaryButton, Tap } from '../components/UI';
+import { Camera, Logout, Pencil } from '../components/Icons';
+import { PathTrail } from '../components/PathTrail';
+import { Brand } from '../components/KeiroLogo';
 
-export default function ProfileScreen() {
+import { useApp } from '../store';
+import { FONTS, RADII } from '../theme';
+
+export function ProfileView() {
   const { t, palette, user, updateUser, signOut, pathDay, sessions } = useApp();
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -50,7 +50,6 @@ export default function ProfileScreen() {
 
   return (
     <GradientBackground>
-      <SwipeNav left="/library">
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
@@ -136,7 +135,6 @@ export default function ProfileScreen() {
           </Pressable>
         </ScrollView>
       </SafeAreaView>
-      </SwipeNav>
     </GradientBackground>
   );
 }

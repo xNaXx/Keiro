@@ -28,7 +28,7 @@ export default function Setup() {
 
   const start = () => {
     updateUser({ name: name.trim() || 'Viajero', age: age ? Number(age) : undefined, photoUri: photo });
-    router.replace('/(tabs)');
+    router.replace('/home');
   };
 
   return (

@@ -200,7 +200,7 @@ export default function PlayerScreen() {
             </Tap>
           </View>
           <View style={{ paddingHorizontal: 28, paddingBottom: 30 }}>
-            <PrimaryButton label={t('player_finish')} onPress={() => router.dismissTo('/(tabs)')} />
+            <PrimaryButton label={t('player_finish')} onPress={() => router.dismissTo('/home')} />
           </View>
         </SafeAreaView>
       </GradientBackground>

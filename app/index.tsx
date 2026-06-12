@@ -5,5 +5,5 @@ export default function Index() {
   const { onboarded, user } = useApp();
   if (!onboarded) return <Redirect href="/onboarding" />;
   if (!user) return <Redirect href="/auth" />;
-  return <Redirect href="/(tabs)" />;
+  return <Redirect href="/home" />;
 }
