@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '../../src/components/GradientBackground';
@@ -7,6 +7,7 @@ import { GlassCard, HeaderActions, MicroLabel, Tap } from '../../src/components/
 import { PathTrail } from '../../src/components/PathTrail';
 import { Sparkle } from '../../src/components/Sparkle';
 import { Brand } from '../../src/components/KeiroLogo';
+import { Float, SwipeNav } from '../../src/components/Motion';
 import { Play, Plus } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
 import { FONTS } from '../../src/theme';
@@ -18,6 +19,22 @@ export default function HomeScreen() {
   const moment = currentMoment();
   const dark = palette.name === 'dark';
 
+  // the + invites: a ring blooms out of it every few seconds
+  const pulse = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 2600, easing: Easing.out(Easing.sin), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 0, useNativeDriver: true }),
+        Animated.delay(400),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+  const ringScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.9] });
+  const ringOpacity = pulse.interpolate({ inputRange: [0, 0.12, 1], outputRange: [0, 0.85, 0] });
+
   const questionKey =
     moment === 'morning' ? 'how_feeling_morning' : moment === 'night' ? 'how_feeling_night' : 'how_feeling_afternoon';
 
@@ -26,6 +43,7 @@ export default function HomeScreen() {
 
   return (
     <GradientBackground glow={dark ? undefined : ['#ffd9b8', '#f6c4dd']}>
+      <SwipeNav right="/library">
       <SafeAreaView style={styles.fill}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
@@ -41,16 +59,27 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.center}>
-            <Sparkle size={16} color={palette.textSoft} twinkle />
-            <Text style={[styles.question, { color: palette.text }]}>{t(questionKey)}</Text>
+            <Float distance={4} duration={6500} style={{ alignItems: 'center', gap: 18 }}>
+              <Sparkle size={16} color={palette.textSoft} twinkle />
+              <Text style={[styles.question, { color: palette.text }]}>{t(questionKey)}</Text>
+            </Float>
 
-            <Tap onPress={() => router.push('/create/mode')} scaleTo={0.9}>
-              <View style={[styles.plus, { borderColor: palette.line }]}>
-                <Plus color={palette.text} size={26} strokeWidth={1.3} />
-              </View>
-            </Tap>
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  styles.plusRing,
+                  { borderColor: '#ffffff', opacity: ringOpacity, transform: [{ scale: ringScale }] },
+                ]}
+              />
+              <Tap onPress={() => router.push('/create/mode')} scaleTo={0.9}>
+                <View style={styles.plus}>
+                  <Plus color="#ffffff" size={26} strokeWidth={1.3} />
+                </View>
+              </Tap>
+            </View>
 
-            <View style={{ marginTop: 34, alignItems: 'center', gap: 8 }}>
+            <Float distance={3} duration={9000} delay={800} style={{ marginTop: 34, alignItems: 'center', gap: 8 }}>
               <PathTrail
                 width={240}
                 height={64}
@@ -61,7 +90,7 @@ export default function HomeScreen() {
               <Text style={{ fontFamily: FONTS.serifItalic, fontSize: 15, color: palette.textFaint }}>
                 {t('home_quote_1')}
               </Text>
-            </View>
+            </Float>
           </View>
 
           {last && lastMood && (
@@ -85,6 +114,7 @@ export default function HomeScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
+      </SwipeNav>
     </GradientBackground>
   );
 }
@@ -107,10 +137,18 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    borderWidth: 1,
+    borderWidth: 1.2,
+    borderColor: 'rgba(255,255,255,0.95)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
+    boxShadow: '0 0 26px rgba(255,255,255,0.55)',
+  },
+  plusRing: {
+    position: 'absolute',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 1,
   },
   cards: { flexDirection: 'row', gap: 14, paddingHorizontal: 24 },
   cardTitle: { fontFamily: FONTS.sansMedium, fontSize: 16, marginTop: 10, lineHeight: 22 },

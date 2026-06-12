@@ -3,6 +3,7 @@ import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { Sparkle } from './Sparkle';
+import { Float } from './Motion';
 import { useApp } from '../store';
 
 function seededRandom(seed: number) {
@@ -62,6 +63,7 @@ function Glow({ colors }: { colors: string[] }) {
   const { width, height } = useWindowDimensions();
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Float distance={14} duration={16000} scaleAmount={0.03} style={StyleSheet.absoluteFill as any}>
       <Svg width={width} height={height}>
         <Defs>
           <RadialGradient id="glowA" cx="50%" cy="50%" r="50%">
@@ -78,6 +80,7 @@ function Glow({ colors }: { colors: string[] }) {
         <Circle cx={width * 0.12} cy={height * 0.32} r={width * 0.65} fill="url(#glowA)" />
         <Circle cx={width * 0.92} cy={height * 0.62} r={width * 0.6} fill="url(#glowB)" />
       </Svg>
+      </Float>
     </View>
   );
 }

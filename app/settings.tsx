@@ -104,7 +104,6 @@ export default function SettingsScreen() {
                           {
                             backgroundColor: sel ? palette.selectedBg : palette.glass,
                             borderColor: sel ? palette.line : palette.glassBorder,
-                            borderWidth: sel ? 1.4 : StyleSheet.hairlineWidth,
                           },
                         ]}
                       >
@@ -171,6 +170,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 11,
     borderRadius: 20,
+    borderWidth: 1.4,
     overflow: 'hidden',
   },
 });

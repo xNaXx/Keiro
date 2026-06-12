@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { GradientBackground } from '../src/components/GradientBackground';
-import { AuroraFigure } from '../src/components/AuroraFigure';
+import { FigureBackdrop, FigureName } from '../src/components/FigureArt';
 import { RingFlower } from '../src/components/RingFlower';
 import { Sparkle } from '../src/components/Sparkle';
 import { BackButton, MicroLabel, PrimaryButton, SettingsButton, Tap, ThemeToggle } from '../src/components/UI';
@@ -20,6 +20,31 @@ function fmt(sec: number) {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+/** Module-level so a re-render never remounts it mid-animation. */
+function ControlTile({
+  children,
+  onPress,
+  wide,
+  palette,
+}: {
+  children: React.ReactNode;
+  onPress: () => void;
+  wide?: boolean;
+  palette: any;
+}) {
+  return (
+    <Tap onPress={onPress} style={{ flex: wide ? 1.4 : 1 }} scaleTo={0.93}>
+      <BlurView
+        intensity={26}
+        tint={palette.name === 'dark' ? 'dark' : 'light'}
+        style={[styles.tile, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
+      >
+        {children}
+      </BlurView>
+    </Tap>
+  );
 }
 
 function seededHeights(n: number) {
@@ -48,6 +73,9 @@ export default function PlayerScreen() {
   const waveWidth = useRef(1);
 
   const demo = !hasElevenLabsKey() && !meditation?.audioUri;
+  const dark = palette.name === 'dark';
+  // tall artworks crop gracefully into the phone frame
+  const figure: FigureName = dark ? 'profile-violet' : 'warm';
   const durationSec = meditation?.durationSec ?? 300;
 
   useEffect(() => {
@@ -146,18 +174,6 @@ export default function PlayerScreen() {
     } catch {}
   };
 
-  const ControlTile = ({ children, onPress, wide }: { children: React.ReactNode; onPress: () => void; wide?: boolean }) => (
-    <Tap onPress={onPress} style={{ flex: wide ? 1.4 : 1 }} scaleTo={0.93}>
-      <BlurView
-        intensity={26}
-        tint={palette.name === 'dark' ? 'dark' : 'light'}
-        style={[styles.tile, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
-      >
-        {children}
-      </BlurView>
-    </Tap>
-  );
-
   if (done) {
     return (
       <GradientBackground colors={mp.bg}>
@@ -217,12 +233,7 @@ export default function PlayerScreen() {
         </View>
 
         <View style={styles.figureZone}>
-          <AuroraFigure
-            pose={meditation.config.mood === 'sadness' ? 'bowed' : 'gazing'}
-            colors={mp.figure}
-            width={420}
-            height={420}
-          />
+          <FigureBackdrop name={figure} fadeTo={mp.bg[2]} />
         </View>
 
         <BlurView
@@ -285,13 +296,13 @@ export default function PlayerScreen() {
           </View>
 
           <View style={styles.controls}>
-            <ControlTile onPress={() => setPlaying(!playing)} wide>
+            <ControlTile onPress={() => setPlaying(!playing)} wide palette={palette}>
               {playing ? <Pause color={palette.text} size={24} /> : <Play color={palette.text} size={24} />}
             </ControlTile>
-            <ControlTile onPress={() => skip(-15)}>
+            <ControlTile onPress={() => skip(-15)} palette={palette}>
               <SkipBack color={palette.text} size={24} />
             </ControlTile>
-            <ControlTile onPress={() => skip(15)}>
+            <ControlTile onPress={() => skip(15)} palette={palette}>
               <SkipFwd color={palette.text} size={24} />
             </ControlTile>
           </View>
@@ -327,8 +338,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
   },
-  figureZone: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', marginTop: -30 },
+  figureZone: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   sheet: {
+    marginTop: 'auto',
     borderTopLeftRadius: RADII.card + 6,
     borderTopRightRadius: RADII.card + 6,
     borderWidth: StyleSheet.hairlineWidth,
@@ -336,7 +348,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 14,
     paddingBottom: 28,
-    marginTop: -56,
   },
   handle: { width: 36, height: 3, borderRadius: 2, alignSelf: 'center', opacity: 0.5, marginBottom: 12 },
   sheetTitle: { fontFamily: FONTS.sans, fontSize: 19, textAlign: 'center', marginTop: 8 },
