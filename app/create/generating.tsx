@@ -11,6 +11,7 @@ import { useApp } from '../../src/store';
 import { FONTS, MOOD_PALETTES } from '../../src/theme';
 import { EnergyId, MomentId, SessionConfig, currentMoment } from '../../src/data';
 import { generateMeditation } from '../../src/services/generator';
+import { hasElevenLabsKey, synthesize } from '../../src/services/elevenlabs';
 
 /** In simple mode the "AI" chooses the rest of the session for you. */
 const ENERGY_FOR_MOOD: Record<string, EnergyId> = {
@@ -68,8 +69,21 @@ export default function GeneratingScreen() {
     const phases = setInterval(() => setPhase((p) => (p + 1) % 4), 1700);
     const minWait = new Promise((r) => setTimeout(r, 4200));
 
-    Promise.all([generateMeditation(config), minWait]).then(([meditation]) => {
+    Promise.all([generateMeditation(config), minWait]).then(async ([meditation]) => {
       clearInterval(phases);
+      if (hasElevenLabsKey()) {
+        setPhase(4); // gen_5: "Composing your voice…"
+        try {
+          const audioUri = await synthesize(
+            meditation.lines.map((l) => l.text),
+            config.voiceId,
+            config.energy
+          );
+          meditation = { ...meditation, audioUri };
+        } catch {
+          // synthesis failed — silently fall back to demo mode
+        }
+      }
       addSession(meditation);
       router.replace({ pathname: '/player', params: { id: meditation.id, fresh: '1' } });
     });

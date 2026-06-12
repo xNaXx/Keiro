@@ -160,6 +160,7 @@ const dict: Dict = {
   gen_2: { es: 'Eligiendo las palabras justas', en: 'Choosing the right words' },
   gen_3: { es: 'Despertando la voz', en: 'Waking the voice' },
   gen_4: { es: 'Abriendo el camino', en: 'Opening the way' },
+  gen_5: { es: 'Componiendo tu voz…', en: 'Composing your voice…' },
 
   // player
   player_step: { es: 'Un paso más en tu camino', en: 'One more step on your path' },

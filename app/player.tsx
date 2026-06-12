@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, GestureResponderEvent, PanResponder, Platform, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -133,12 +133,18 @@ export default function PlayerScreen() {
   const lineFade = useRef(new Animated.Value(0)).current;
   const waveWidth = useRef(1);
 
-  const demo = !hasElevenLabsKey() && !meditation?.audioUri;
+  // Real ElevenLabs audio element (web only)
+  const htmlAudio = useRef<HTMLAudioElement | null>(null);
+  const [audioActive, setAudioActive] = useState(false);
+
+  const hasRealAudio = !!(meditation?.audioUri && Platform.OS === 'web');
+  const demo = !hasRealAudio;
   const dark = palette.name === 'dark';
   // tall artworks crop gracefully into the phone frame
   const figure: FigureName = dark ? 'profile-violet' : 'warm';
   const durationSec = meditation?.durationSec ?? 300;
 
+  // Session timer — always a fake interval (real audio plays alongside it)
   useEffect(() => {
     if (!playing || done) return;
     const iv = setInterval(() => {
@@ -155,7 +161,29 @@ export default function PlayerScreen() {
     return () => clearInterval(iv);
   }, [playing, durationSec, done]);
 
-  // voice activity drives the orb
+  // Real ElevenLabs audio: initialize once per audioUri
+  useEffect(() => {
+    if (!hasRealAudio || Platform.OS !== 'web') return;
+    const audio = new (window as any).Audio(meditation!.audioUri) as HTMLAudioElement;
+    audio.volume = vols.voice;
+    audio.onplay = () => setAudioActive(true);
+    audio.onpause = () => setAudioActive(false);
+    audio.onended = () => { setAudioActive(false); fadeOutAmbient(3); };
+    htmlAudio.current = audio;
+    if (playing) audio.play().catch(() => {});
+    return () => { audio.pause(); audio.src = ''; htmlAudio.current = null; };
+    // intentionally no vols/playing in deps — we sync those in separate effects
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meditation?.audioUri]);
+
+  // Sync play/pause with real audio
+  useEffect(() => {
+    if (!htmlAudio.current) return;
+    if (playing && !done) htmlAudio.current.play().catch(() => {});
+    else htmlAudio.current.pause();
+  }, [playing, done]);
+
+  // Demo voice activity drives the orb
   useEffect(() => onSpeaking(setSpeaking), []);
 
   const setSheet = (c: boolean) => {
@@ -178,24 +206,22 @@ export default function PlayerScreen() {
     })
   ).current;
 
-  // demo soundscape: ambient pad while playing, browser voice per line
+  // Ambient pad: runs in both demo and real-audio modes
   useEffect(() => {
-    if (demo && playing && !done) startAmbient(meditation?.config.soundType === 'hz' ? meditation.config.hzFreq : undefined);
-    else {
+    if (playing && !done) {
+      startAmbient(meditation?.config.soundType === 'hz' ? meditation.config.hzFreq : undefined);
+    } else {
       stopAmbient();
-      stopSpeech();
+      if (demo) stopSpeech();
     }
-    return () => {
-      stopAmbient();
-      stopSpeech();
-    };
-  }, [demo, playing, done]);
+    return () => { stopAmbient(); stopSpeech(); };
+  }, [playing, done, demo]);
 
-  // the session never ends abruptly: the pad dissolves over the last seconds
+  // Pad dissolves over the last few seconds so the session never ends abruptly
   const remaining = durationSec - elapsed;
   useEffect(() => {
-    if (demo && playing && !done && remaining <= 9 && remaining > 0) fadeOutAmbient(remaining);
-  }, [demo, playing, done, remaining]);
+    if (playing && !done && remaining <= 9 && remaining > 0) fadeOutAmbient(remaining);
+  }, [playing, done, remaining]);
 
   const currentLine = useMemo(() => {
     if (!meditation) return null;
@@ -225,14 +251,21 @@ export default function PlayerScreen() {
   }
 
   const progress = elapsed / durationSec;
-  const skip = (d: number) => setElapsed((e) => Math.min(Math.max(0, e + d), durationSec));
+
+  const seekTo = useCallback((sec: number) => {
+    const clamped = Math.min(Math.max(0, sec), durationSec);
+    if (htmlAudio.current) htmlAudio.current.currentTime = clamped;
+    stopSpeech();
+    setElapsed(clamped);
+    if (done && clamped < durationSec) setDone(false);
+  }, [durationSec, done]);
+
+  const skip = (d: number) => seekTo(elapsed + d);
 
   const seekFromEvent = (e: GestureResponderEvent) => {
     const x = e.nativeEvent.locationX;
     const p = Math.min(1, Math.max(0, x / waveWidth.current));
-    stopSpeech();
-    setElapsed(Math.round(p * durationSec));
-    if (done && p < 1) setDone(false);
+    seekTo(Math.round(p * durationSec));
   };
 
   const downloadFile = async () => {
@@ -363,7 +396,7 @@ export default function PlayerScreen() {
             </Tap>
             {collapsed ? (
               <View style={styles.miniRow}>
-                <VoiceOrb size={40} color={palette.line} active={speaking && playing}>
+                <VoiceOrb size={40} color={palette.line} active={demo ? (speaking && playing) : audioActive}>
                   <Text style={{ fontFamily: FONTS.sans, fontSize: 10, color: palette.text }}>
                     {Math.round(progress * 100)}%
                   </Text>
@@ -384,7 +417,7 @@ export default function PlayerScreen() {
           </View>
 
           <View style={{ alignItems: 'center', marginTop: 10 }}>
-            <VoiceOrb size={176} color={palette.line} active={speaking && playing}>
+            <VoiceOrb size={176} color={palette.line} active={demo ? (speaking && playing) : audioActive}>
               <View style={{ alignItems: 'center', gap: 2 }}>
                 <Text style={[styles.moodWord, { color: palette.text }]}>{mood.feeling[language]}</Text>
                 <Text style={{ fontFamily: FONTS.sans, fontSize: 12, color: palette.textFaint }}>
@@ -438,6 +471,7 @@ export default function PlayerScreen() {
               icon={<VoiceWave color={palette.textSoft} size={17} />}
               value={vols.voice}
               onChange={(v) => {
+                if (htmlAudio.current) htmlAudio.current.volume = v;
                 setVoiceVolume(v);
                 setVols({ ...vols, voice: v });
               }}
