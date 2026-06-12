@@ -82,6 +82,6 @@ export function FigureImage({
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1 },
+  fill: { flex: 1, overflow: 'hidden' },
   img: { width: '100%', height: '100%' },
 });

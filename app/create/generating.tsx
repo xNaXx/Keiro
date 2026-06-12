@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GradientBackground } from '../../src/components/GradientBackground';
+import { BlurView } from 'expo-blur';
 import { FigureBackdrop } from '../../src/components/FigureArt';
-import { RingFlower } from '../../src/components/RingFlower';
+import { Ripples } from '../../src/components/Motion';
 import { Sparkle } from '../../src/components/Sparkle';
 import { Brand } from '../../src/components/KeiroLogo';
 import { useApp } from '../../src/store';
@@ -41,6 +41,7 @@ export default function GeneratingScreen() {
 
   const mood = params.mood ?? 'calm';
   const mp = MOOD_PALETTES[mood]?.[palette.name] ?? MOOD_PALETTES.calm[palette.name];
+  const dark = palette.name === 'dark';
 
   useEffect(() => {
     if (started.current) return;
@@ -76,34 +77,56 @@ export default function GeneratingScreen() {
   }, [phase, fade]);
 
   return (
-    <GradientBackground colors={mp.bg}>
-      <SafeAreaView style={styles.fill}>
-        <View style={styles.center}>
-          <RingFlower size={320} color={palette.line}>
-            <View style={{ width: 240, height: 240, borderRadius: 120, overflow: 'hidden' }}>
-              <FigureBackdrop name="lotus" />
-            </View>
-          </RingFlower>
+    <View style={{ flex: 1, backgroundColor: mp.bg[0] }}>
+      <FigureBackdrop name="lotus" fadeTo={mp.bg[2]}>
+        <View style={styles.ripples} pointerEvents="none">
+          <Ripples size={340} color="rgba(255,255,255,0.75)" />
+        </View>
 
-          <View style={{ alignItems: 'center', gap: 14, marginTop: 10 }}>
-            <Sparkle size={16} color={palette.text} twinkle />
-            <Text style={[styles.title, { color: palette.text }]}>{t('gen_title')}</Text>
-            <Animated.Text style={[styles.phase, { color: palette.textSoft, opacity: fade }]}>
-              {t(`gen_${phase + 1}`)}
-            </Animated.Text>
+        <SafeAreaView style={styles.fill}>
+          <View style={{ flex: 1 }} />
+          <View style={styles.bottom}>
+            <BlurView
+              intensity={30}
+              tint={dark ? 'dark' : 'light'}
+              style={[styles.card, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
+            >
+              <Sparkle size={15} color={palette.text} twinkle />
+              <Text style={[styles.title, { color: palette.text }]}>{t('gen_title')}</Text>
+              <Animated.Text style={[styles.phase, { color: palette.textSoft, opacity: fade }]}>
+                {t(`gen_${phase + 1}`)}
+              </Animated.Text>
+            </BlurView>
+            <Brand color="rgba(255,255,255,0.85)" />
           </View>
-        </View>
-        <View style={{ alignItems: 'center', paddingBottom: 36 }}>
-          <Brand color={palette.textSoft} />
-        </View>
-      </SafeAreaView>
-    </GradientBackground>
+        </SafeAreaView>
+      </FigureBackdrop>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 18 },
-  title: { fontFamily: FONTS.serif, fontSize: 28 },
+  ripples: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: '20%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottom: { alignItems: 'center', gap: 20, paddingHorizontal: 28, paddingBottom: 34 },
+  card: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 24,
+    paddingHorizontal: 24,
+    borderRadius: 32,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  title: { fontFamily: FONTS.serif, fontSize: 27 },
   phase: { fontFamily: FONTS.sans, fontSize: 14.5 },
 });

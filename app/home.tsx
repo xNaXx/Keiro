@@ -87,7 +87,7 @@ export default function MainPager() {
           transform: [{ translateX: bgShift }],
         }}
       >
-        <GradientBackground glow={palette.name === 'dark' ? undefined : ['#ffd9b8', '#f6c4dd']} />
+        <GradientBackground glow={palette.name === 'dark' ? ['#7a4fb8', '#b85a96'] : ['#ffd9b8', '#f6c4dd']} />
       </Animated.View>
       <Animated.View
         style={{
