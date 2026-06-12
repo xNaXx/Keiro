@@ -47,7 +47,7 @@ export const LIGHT: Palette = {
 
 export const DARK: Palette = {
   name: 'dark',
-  bg: ['#0b1026', '#141b3c', '#232c5c'],
+  bg: ['#171231', '#2a1d4e', '#452d68'],
   text: '#f2f4ff',
   textSoft: 'rgba(242,244,255,0.65)',
   textFaint: 'rgba(242,244,255,0.40)',
@@ -59,7 +59,7 @@ export const DARK: Palette = {
   line: 'rgba(228,234,255,0.75)',
   accent: '#ffe9b8',
   buttonText: '#10142e',
-  stars: true,
+  stars: false,
 };
 
 /** Mood-tinted palettes used on the player & generating screens. [light, dark] */

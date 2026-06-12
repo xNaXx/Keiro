@@ -72,3 +72,53 @@ export function SwipeNav({
     </View>
   );
 }
+
+/**
+ * Concentric ripples blooming outward — the visual heartbeat of the
+ * generating screen.
+ */
+export function Ripples({
+  size = 300,
+  color = 'rgba(255,255,255,0.8)',
+  count = 3,
+}: {
+  size?: number;
+  color?: string;
+  count?: number;
+}) {
+  const waves = useRef(Array.from({ length: count }, () => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    const loops = waves.map((v, i) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay((i * 5200) / count),
+          Animated.timing(v, { toValue: 1, duration: 5200, easing: Easing.out(Easing.sin), useNativeDriver: true }),
+          Animated.timing(v, { toValue: 0, duration: 0, useNativeDriver: true }),
+        ])
+      )
+    );
+    loops.forEach((l) => l.start());
+    return () => loops.forEach((l) => l.stop());
+  }, [waves, count]);
+
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
+      {waves.map((v, i) => (
+        <Animated.View
+          key={i}
+          style={{
+            position: 'absolute',
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderWidth: 1,
+            borderColor: color,
+            opacity: v.interpolate({ inputRange: [0, 0.12, 1], outputRange: [0, 0.7, 0] }),
+            transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1.05] }) }],
+          }}
+        />
+      ))}
+    </View>
+  );
+}

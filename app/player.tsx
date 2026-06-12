@@ -176,34 +176,44 @@ export default function PlayerScreen() {
 
   if (done) {
     return (
-      <GradientBackground colors={mp.bg}>
-        <SafeAreaView style={{ flex: 1 }}>
-          <View style={styles.doneCenter}>
-            <RingFlower size={300} color={palette.line}>
-              <Sparkle size={34} color={palette.text} twinkle />
-            </RingFlower>
-            <Text style={[styles.doneTitle, { color: palette.text }]}>{t('player_done_title')}</Text>
-            <Text style={{ fontFamily: FONTS.sans, fontSize: 15, color: palette.textSoft, textAlign: 'center' }}>
-              {t('player_done_body')}
-            </Text>
-            <Tap onPress={downloadFile} style={styles.downloadRow} hitSlop={8}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {meditation.downloaded ? (
-                  <Check color={palette.accent} size={18} />
-                ) : (
-                  <Download color={palette.textSoft} size={18} />
-                )}
-                <Text style={{ fontFamily: FONTS.sans, fontSize: 14, color: palette.textSoft }}>
-                  {meditation.downloaded ? t('player_downloaded') : t('player_download')}
-                </Text>
+      <View style={{ flex: 1, overflow: 'hidden', backgroundColor: mp.bg[0] }}>
+        <FigureBackdrop name="standing" fadeTo={mp.bg[2]}>
+          <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.header}>
+              <View style={{ width: 98 }} />
+              <Brand color="rgba(255,255,255,0.9)" />
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <ThemeToggle />
+                <SettingsButton />
               </View>
-            </Tap>
-          </View>
-          <View style={{ paddingHorizontal: 28, paddingBottom: 30 }}>
-            <PrimaryButton label={t('player_finish')} onPress={() => router.dismissTo('/home')} />
-          </View>
-        </SafeAreaView>
-      </GradientBackground>
+            </View>
+            <View style={styles.doneCenter}>
+              <RingFlower size={280} color="rgba(255,255,255,0.8)">
+                <Sparkle size={34} color="#ffffff" twinkle />
+              </RingFlower>
+              <Text style={[styles.doneTitle, { color: '#ffffff' }]}>{t('player_done_title')}</Text>
+              <Text style={{ fontFamily: FONTS.sans, fontSize: 15, color: 'rgba(255,255,255,0.85)', textAlign: 'center' }}>
+                {t('player_done_body')}
+              </Text>
+              <Tap onPress={downloadFile} style={styles.downloadRow} hitSlop={8}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  {meditation.downloaded ? (
+                    <Check color="#ffe9b8" size={18} />
+                  ) : (
+                    <Download color="rgba(255,255,255,0.85)" size={18} />
+                  )}
+                  <Text style={{ fontFamily: FONTS.sans, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>
+                    {meditation.downloaded ? t('player_downloaded') : t('player_download')}
+                  </Text>
+                </View>
+              </Tap>
+            </View>
+            <View style={{ paddingHorizontal: 28, paddingBottom: 30 }}>
+              <PrimaryButton label={t('player_finish')} onPress={() => router.dismissTo('/home')} />
+            </View>
+          </SafeAreaView>
+        </FigureBackdrop>
+      </View>
     );
   }
 
