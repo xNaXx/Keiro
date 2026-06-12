@@ -22,7 +22,7 @@ const dict: Dict = {
   ob3_body: { es: 'Voces cálidas y cercanas te acompañan paso a paso hacia tu mundo interior.', en: 'Warm, close voices walk with you, step by step, into your inner world.' },
 
   // auth
-  auth_welcome: { es: 'Bienvenido a tu sendero', en: 'Welcome to your path' },
+  auth_welcome: { es: 'Bienvenid{o} a tu sendero', en: 'Welcome to your path' },
   auth_login: { es: 'Iniciar sesión', en: 'Log in' },
   auth_register: { es: 'Crear cuenta', en: 'Create account' },
   auth_google: { es: 'Continuar con Google', en: 'Continue with Google' },
@@ -38,6 +38,9 @@ const dict: Dict = {
   setup_title: { es: 'Antes de dar el primer paso', en: 'Before your first step' },
   setup_body: { es: 'Cuéntanos un poco de ti para acompañarte mejor.', en: 'Tell us a little about yourself so we can walk with you.' },
   setup_name: { es: 'Tu nombre', en: 'Your name' },
+  gender_q: { es: '¿Cómo quieres que te tratemos?', en: 'How should we address you?' },
+  gender_m: { es: 'Masculino', en: 'Masculine' },
+  gender_f: { es: 'Femenino', en: 'Feminine' },
   setup_age: { es: 'Tu edad (opcional)', en: 'Your age (optional)' },
   setup_photo: { es: 'Añadir foto', en: 'Add photo' },
   setup_change_photo: { es: 'Cambiar foto', en: 'Change photo' },
@@ -120,6 +123,12 @@ const dict: Dict = {
   density_high: { es: 'Constante', en: 'Steady' },
   density_high_d: { es: 'Acompañamiento continuo', en: 'Continuous guidance' },
 
+  // upgrade popup
+  up_title: { es: 'Función Premium', en: 'Premium feature' },
+  up_body: { es: 'Desbloquea el modo oscuro, las descargas, el modo avanzado y todas las voces.', en: 'Unlock dark mode, downloads, advanced mode and every voice.' },
+  up_cta: { es: 'Ver Premium', en: 'See Premium' },
+  up_no: { es: 'Ahora no', en: 'Not now' },
+
   // paywall
   pw_label: { es: 'premium', en: 'premium' },
   pw_title: { es: 'Tu calma,\nsin límites', en: 'Your calm,\nwithout limits' },
@@ -195,9 +204,16 @@ const dict: Dict = {
   demo_hint: { es: 'Modo demo: texto y audio simulados. Conecta tus claves de Claude y ElevenLabs para la generación real.', en: 'Demo mode: simulated text & audio. Connect your Claude and ElevenLabs keys for real generation.' },
 };
 
-export function translate(key: string, lang: Language, vars?: Record<string, string | number>): string {
+export function translate(
+  key: string,
+  lang: Language,
+  vars?: Record<string, string | number>,
+  gender: 'male' | 'female' = 'male'
+): string {
   const entry = dict[key];
   let s = entry ? entry[lang] : key;
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.replace(`{${k}}`, String(v));
+  // Spanish grammatical gender token: Bienvenid{o} → Bienvenido / Bienvenida
+  s = s.replace(/\{o\}/g, gender === 'female' ? 'a' : 'o');
   return s;
 }

@@ -12,7 +12,7 @@ type Bank = { es: string[]; en: string[] };
 
 const OPENINGS: Bank = {
   es: [
-    'Bienvenida a este momento. Aquí no hay prisa.',
+    'Bienvenid{o} a este momento. Aquí no hay prisa.',
     'Llega tal y como estás. Eso es suficiente.',
     'Este instante es tuyo. Nadie más lo habita.',
     'Detente un momento. El camino puede esperar.',
@@ -233,7 +233,9 @@ function buildDemoScript(config: SessionConfig): { title: string; texts: string[
   ];
   const titleBank = TITLES[config.mood] ?? TITLES.calm;
   const title = pick(titleBank[lang], 1, rng)[0];
-  return { title, texts };
+  // resolve the Spanish gender token by how the listener wants to be addressed
+  const o = config.userGender === 'female' ? 'a' : 'o';
+  return { title, texts: texts.map((x) => x.replace(/\{o\}/g, o)) };
 }
 
 /** Spread lines across the duration, leaving silence between them. */

@@ -17,6 +17,7 @@ export function ProfileView() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.name ?? '');
   const [age, setAge] = useState(user?.age ? String(user.age) : '');
+  const [gender, setGender] = useState<'male' | 'female' | undefined>(user?.gender);
 
   const totalMin = Math.round(sessions.reduce((acc, s) => acc + s.durationSec, 0) / 60);
 
@@ -31,7 +32,7 @@ export function ProfileView() {
   };
 
   const saveEdits = () => {
-    updateUser({ name: name.trim() || user?.name, age: age ? Number(age) : undefined });
+    updateUser({ name: name.trim() || user?.name, age: age ? Number(age) : undefined, gender });
     setEditing(false);
   };
 
@@ -88,6 +89,28 @@ export function ProfileView() {
                   maxLength={3}
                   style={[styles.input, { backgroundColor: palette.glass, borderColor: palette.glassBorder, color: palette.text }]}
                 />
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  {(['male', 'female'] as const).map((g) => (
+                    <Pressable
+                      key={g}
+                      onPress={() => setGender(g)}
+                      style={{
+                        flex: 1,
+                        height: 46,
+                        borderRadius: 23,
+                        borderWidth: 1.4,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: gender === g ? palette.selectedBg : palette.glass,
+                        borderColor: gender === g ? palette.selectedBorder : palette.glassBorder,
+                      }}
+                    >
+                      <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 13.5, color: palette.text }}>
+                        {t(g === 'male' ? 'gender_m' : 'gender_f')}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
                 <PrimaryButton label={t('save')} onPress={saveEdits} />
               </View>
             ) : (

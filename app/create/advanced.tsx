@@ -8,7 +8,7 @@ import { MoodIcon } from '../../src/components/MoodIcon';
 import { MoodOrb } from '../../src/components/MoodOrb';
 import { BackButton, GlassIconButton, CreateHeaderActions, MicroLabel, PrimaryButton, Tap, Title } from '../../src/components/UI';
 import { PathTrail } from '../../src/components/PathTrail';
-import { ArrowLeft, Lock, Moon, SpeakerWave, Sun, Sunrise, Sunset } from '../../src/components/Icons';
+import { ArrowLeft, Moon, SpeakerWave, Sun, Sunrise, Sunset } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
 import { FONTS, RADII } from '../../src/theme';
 import { DURATIONS, ENERGIES, EnergyId, HZ_OPTIONS, MOMENTS, MOODS, MomentId, SoundType, VOICES, VoiceDensity, currentMoment } from '../../src/data';
@@ -65,7 +65,7 @@ function Chip({
 }
 
 export default function AdvancedScreen() {
-  const { t, palette, language, preferredVoice, plan } = useApp();
+  const { t, palette, language, preferredVoice, plan, showUpgrade } = useApp();
   const router = useRouter();
   const dark = palette.name === 'dark';
 
@@ -167,7 +167,7 @@ export default function AdvancedScreen() {
               {VOICES.map((v) => {
                 const locked = !!v.premium && plan === 'free';
                 return (
-                <Tap key={v.id} onPress={() => (locked ? router.push('/paywall') : setVoice(v.id))} scaleTo={0.97}>
+                <Tap key={v.id} onPress={() => (locked ? showUpgrade() : setVoice(v.id))} scaleTo={0.97}>
                   <BlurView
                     intensity={24}
                     tint={dark ? 'dark' : 'light'}
@@ -176,7 +176,7 @@ export default function AdvancedScreen() {
                       {
                         backgroundColor: voice === v.id ? palette.selectedBg : palette.glass,
                         borderColor: voice === v.id ? palette.selectedBorder : palette.glassBorder,
-                        opacity: locked ? 0.62 : 1,
+                        opacity: locked ? 0.45 : 1,
                       },
                     ]}
                   >
@@ -190,12 +190,9 @@ export default function AdvancedScreen() {
                       </Text>
                     </View>
                     {locked ? (
-                      <View style={{ alignItems: 'center', gap: 4, opacity: 0.8 }}>
-                        <Lock color={palette.textFaint} size={18} />
-                        <Text style={{ fontFamily: FONTS.sans, fontSize: 10.5, color: palette.textFaint }}>
-                          {t('pw_label')}
-                        </Text>
-                      </View>
+                      <Text style={{ fontFamily: FONTS.sans, fontSize: 10.5, color: palette.textFaint }}>
+                        {t('pw_label')}
+                      </Text>
                     ) : (
                       <Tap
                         onPress={() => {

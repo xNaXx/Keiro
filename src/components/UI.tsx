@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useApp } from '../store';
 import { FONTS, RADII } from '../theme';
 import { ArrowLeft, Gear, Home, Lock, Moon, Sun } from './Icons';
+import { fadeTheme } from '../themeFade';
 
 /**
  * Pressable with a soft spring scale — every touch in Keiro breathes a
@@ -177,18 +178,18 @@ export function LockBadge() {
 
 /** Always-visible light/dark switch. Dark mode is a premium perk. */
 export function ThemeToggle() {
-  const { palette, setThemeMode, plan } = useApp();
-  const router = useRouter();
+  const { palette, setThemeMode, plan, showUpgrade } = useApp();
   const dark = palette.name === 'dark';
   const locked = plan === 'free';
   return (
-    <View>
+    <View style={locked ? { opacity: 0.45 } : undefined}>
       <GlassIconButton
-        onPress={() => (locked ? router.push('/paywall') : setThemeMode(dark ? 'light' : 'dark'))}
+        onPress={() =>
+          locked ? showUpgrade() : fadeTheme(() => setThemeMode(dark ? 'light' : 'dark'))
+        }
       >
         {dark ? <Sun color={palette.text} size={19} /> : <Moon color={palette.text} size={18} />}
       </GlassIconButton>
-      {locked && <LockBadge />}
     </View>
   );
 }

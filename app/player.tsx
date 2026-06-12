@@ -7,7 +7,7 @@ import { GradientBackground } from '../src/components/GradientBackground';
 import { FigureBackdrop, FigureName } from '../src/components/FigureArt';
 import { RingFlower } from '../src/components/RingFlower';
 import { Sparkle } from '../src/components/Sparkle';
-import { BackButton, LockBadge, MicroLabel, PrimaryButton, SettingsButton, Tap, ThemeToggle } from '../src/components/UI';
+import { BackButton, MicroLabel, PrimaryButton, SettingsButton, Tap, ThemeToggle } from '../src/components/UI';
 import { Check, Download, MusicNote, Pause, Play, SkipBack, SkipFwd, VoiceWave } from '../src/components/Icons';
 import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES, RADII } from '../src/theme';
@@ -114,7 +114,7 @@ function seededHeights(n: number) {
 
 export default function PlayerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, palette, sessions, toggleDownload, language, plan } = useApp();
+  const { t, palette, sessions, toggleDownload, language, plan, showUpgrade } = useApp();
   const router = useRouter();
 
   const meditation = sessions.find((s) => s.id === id);
@@ -237,7 +237,7 @@ export default function PlayerScreen() {
 
   const downloadFile = async () => {
     if (plan === 'free') {
-      router.push('/paywall');
+      showUpgrade();
       return;
     }
     toggleDownload(meditation.id);
@@ -314,7 +314,7 @@ export default function PlayerScreen() {
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <ThemeToggle />
             <SettingsButton />
-            <View>
+            <View style={plan === 'free' ? { opacity: 0.45 } : undefined}>
               <Tap onPress={downloadFile} hitSlop={6} scaleTo={0.88}>
                 <BlurView
                   intensity={24}
@@ -328,7 +328,6 @@ export default function PlayerScreen() {
                   )}
                 </BlurView>
               </Tap>
-              {plan === 'free' && <LockBadge />}
             </View>
           </View>
         </View>

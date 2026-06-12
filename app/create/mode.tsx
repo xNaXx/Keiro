@@ -3,15 +3,15 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '../../src/components/GradientBackground';
-import { BackButton, Body, GlassCard, CreateHeaderActions, LockBadge, MicroLabel, Title } from '../../src/components/UI';
+import { BackButton, Body, GlassCard, CreateHeaderActions, MicroLabel, Title } from '../../src/components/UI';
 import { Sparkle } from '../../src/components/Sparkle';
 import { Brand } from '../../src/components/KeiroLogo';
-import { Gear, Lock } from '../../src/components/Icons';
+import { Gear } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
 import { FONTS } from '../../src/theme';
 
 export default function ModeScreen() {
-  const { t, palette, plan } = useApp();
+  const { t, palette, plan, showUpgrade } = useApp();
   const router = useRouter();
 
   return (
@@ -35,20 +35,16 @@ export default function ModeScreen() {
               <Body center={false}>{t('mode_simple_desc')}</Body>
             </GlassCard>
 
-            <View>
-              <GlassCard
-                onPress={() => (plan === 'free' ? router.push('/paywall') : router.push('/create/advanced'))}
-                style={plan === 'free' ? { opacity: 0.72 } : undefined}
-              >
-                <View style={styles.cardHead}>
-                  <Gear size={18} color={palette.text} />
-                  <Text style={[styles.cardTitle, { color: palette.text }]}>{t('mode_advanced')}</Text>
-                  {plan === 'free' && <Lock color={palette.textSoft} size={16} />}
-                </View>
-                <Body center={false}>{t('mode_advanced_desc')}</Body>
-              </GlassCard>
-              {plan === 'free' && <LockBadge />}
-            </View>
+            <GlassCard
+              onPress={() => (plan === 'free' ? showUpgrade() : router.push('/create/advanced'))}
+              style={plan === 'free' ? { opacity: 0.45 } : undefined}
+            >
+              <View style={styles.cardHead}>
+                <Gear size={18} color={palette.text} />
+                <Text style={[styles.cardTitle, { color: palette.text }]}>{t('mode_advanced')}</Text>
+              </View>
+              <Body center={false}>{t('mode_advanced_desc')}</Body>
+            </GlassCard>
           </View>
         </View>
       </SafeAreaView>
