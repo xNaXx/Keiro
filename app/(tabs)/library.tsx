@@ -8,6 +8,7 @@ import { Body, GlassCard, HeaderActions, MicroLabel, Tap, Title } from '../../sr
 import { Check, Download } from '../../src/components/Icons';
 import { Sparkle } from '../../src/components/Sparkle';
 import { Brand } from '../../src/components/KeiroLogo';
+import { SwipeNav } from '../../src/components/Motion';
 import { useApp } from '../../src/store';
 import { FONTS } from '../../src/theme';
 import { MOODS, Meditation } from '../../src/data';
@@ -53,6 +54,7 @@ export default function LibraryScreen() {
 
   return (
     <GradientBackground>
+      <SwipeNav left="/" right="/profile">
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.topRow}>
@@ -103,6 +105,7 @@ export default function LibraryScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
+      </SwipeNav>
     </GradientBackground>
   );
 }

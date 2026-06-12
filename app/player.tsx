@@ -22,6 +22,31 @@ function fmt(sec: number) {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+/** Module-level so a re-render never remounts it mid-animation. */
+function ControlTile({
+  children,
+  onPress,
+  wide,
+  palette,
+}: {
+  children: React.ReactNode;
+  onPress: () => void;
+  wide?: boolean;
+  palette: any;
+}) {
+  return (
+    <Tap onPress={onPress} style={{ flex: wide ? 1.4 : 1 }} scaleTo={0.93}>
+      <BlurView
+        intensity={26}
+        tint={palette.name === 'dark' ? 'dark' : 'light'}
+        style={[styles.tile, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
+      >
+        {children}
+      </BlurView>
+    </Tap>
+  );
+}
+
 function seededHeights(n: number) {
   let s = 11;
   return Array.from({ length: n }, () => {
@@ -145,18 +170,6 @@ export default function PlayerScreen() {
       setTimeout(() => URL.revokeObjectURL(url), 4000);
     } catch {}
   };
-
-  const ControlTile = ({ children, onPress, wide }: { children: React.ReactNode; onPress: () => void; wide?: boolean }) => (
-    <Tap onPress={onPress} style={{ flex: wide ? 1.4 : 1 }} scaleTo={0.93}>
-      <BlurView
-        intensity={26}
-        tint={palette.name === 'dark' ? 'dark' : 'light'}
-        style={[styles.tile, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
-      >
-        {children}
-      </BlurView>
-    </Tap>
-  );
 
   if (done) {
     return (
@@ -285,13 +298,13 @@ export default function PlayerScreen() {
           </View>
 
           <View style={styles.controls}>
-            <ControlTile onPress={() => setPlaying(!playing)} wide>
+            <ControlTile onPress={() => setPlaying(!playing)} wide palette={palette}>
               {playing ? <Pause color={palette.text} size={24} /> : <Play color={palette.text} size={24} />}
             </ControlTile>
-            <ControlTile onPress={() => skip(-15)}>
+            <ControlTile onPress={() => skip(-15)} palette={palette}>
               <SkipBack color={palette.text} size={24} />
             </ControlTile>
-            <ControlTile onPress={() => skip(15)}>
+            <ControlTile onPress={() => skip(15)} palette={palette}>
               <SkipFwd color={palette.text} size={24} />
             </ControlTile>
           </View>

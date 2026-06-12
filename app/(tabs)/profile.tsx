@@ -8,6 +8,7 @@ import { GlassCard, HeaderActions, MicroLabel, PrimaryButton, Tap } from '../../
 import { Camera, Logout, Pencil } from '../../src/components/Icons';
 import { PathTrail } from '../../src/components/PathTrail';
 import { Brand } from '../../src/components/KeiroLogo';
+import { SwipeNav } from '../../src/components/Motion';
 import { useApp } from '../../src/store';
 import { FONTS, RADII } from '../../src/theme';
 
@@ -49,6 +50,7 @@ export default function ProfileScreen() {
 
   return (
     <GradientBackground>
+      <SwipeNav left="/library">
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
@@ -134,6 +136,7 @@ export default function ProfileScreen() {
           </Pressable>
         </ScrollView>
       </SafeAreaView>
+      </SwipeNav>
     </GradientBackground>
   );
 }

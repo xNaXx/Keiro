@@ -16,6 +16,41 @@ import { speakSample } from '../../src/services/demoAudio';
 
 const STEPS = ['mood', 'moment', 'duration', 'voice', 'energy'] as const;
 
+/** Module-level so React never remounts it when the selection re-renders. */
+function Chip({
+  selected,
+  onPress,
+  children,
+  grow,
+  palette,
+  dark,
+}: {
+  selected: boolean;
+  onPress: () => void;
+  children: React.ReactNode;
+  grow?: boolean;
+  palette: any;
+  dark: boolean;
+}) {
+  return (
+    <Tap onPress={onPress} style={grow ? { flexGrow: 1 } : undefined} scaleTo={0.95}>
+      <BlurView
+        intensity={24}
+        tint={dark ? 'dark' : 'light'}
+        style={[
+          styles.chip,
+          {
+            backgroundColor: selected ? palette.selectedBg : palette.glass,
+            borderColor: selected ? palette.line : palette.glassBorder,
+          },
+        ]}
+      >
+        {children}
+      </BlurView>
+    </Tap>
+  );
+}
+
 export default function AdvancedScreen() {
   const { t, palette, language, preferredVoice } = useApp();
   const router = useRouter();
@@ -38,35 +73,6 @@ export default function AdvancedScreen() {
       params: { mood, moment, duration: String(duration), voice, energy, mode: 'advanced' },
     });
   };
-
-  const Chip = ({
-    selected,
-    onPress,
-    children,
-    grow,
-  }: {
-    selected: boolean;
-    onPress: () => void;
-    children: React.ReactNode;
-    grow?: boolean;
-  }) => (
-    <Tap onPress={onPress} style={grow ? { flexGrow: 1 } : undefined} scaleTo={0.95}>
-      <BlurView
-        intensity={24}
-        tint={dark ? 'dark' : 'light'}
-        style={[
-          styles.chip,
-          {
-            backgroundColor: selected ? palette.selectedBg : palette.glass,
-            borderColor: selected ? palette.line : palette.glassBorder,
-            borderWidth: selected ? 1.4 : StyleSheet.hairlineWidth,
-          },
-        ]}
-      >
-        {children}
-      </BlurView>
-    </Tap>
-  );
 
   const momentIcons = { sunrise: Sunrise, sun: Sun, sunset: Sunset, moon: Moon };
 
@@ -97,7 +103,7 @@ export default function AdvancedScreen() {
           {step === 0 && (
             <View style={styles.wrapRow}>
               {MOODS.map((m) => (
-                <Chip key={m.id} selected={mood === m.id} onPress={() => setMood(m.id)}>
+                <Chip key={m.id} selected={mood === m.id} onPress={() => setMood(m.id)} palette={palette} dark={dark}>
                   <MoodIcon mood={m.id} size={20} color={palette.text} strokeWidth={1.4} />
                   <Text style={[styles.chipText, { color: palette.text }]}>{m.label[language]}</Text>
                 </Chip>
@@ -110,7 +116,7 @@ export default function AdvancedScreen() {
               {MOMENTS.map((m) => {
                 const Icon = momentIcons[m.icon];
                 return (
-                  <Chip key={m.id} selected={moment === m.id} onPress={() => setMoment(m.id)} grow>
+                  <Chip key={m.id} selected={moment === m.id} onPress={() => setMoment(m.id)} grow palette={palette} dark={dark}>
                     <Icon color={palette.text} size={18} />
                     <Text style={[styles.chipText, { color: palette.text }]}>{t(m.tKey)}</Text>
                   </Chip>
@@ -122,7 +128,7 @@ export default function AdvancedScreen() {
           {step === 2 && (
             <View style={styles.wrapRow}>
               {DURATIONS.map((d) => (
-                <Chip key={d} selected={duration === d} onPress={() => setDuration(d)}>
+                <Chip key={d} selected={duration === d} onPress={() => setDuration(d)} palette={palette} dark={dark}>
                   <Text style={{ fontFamily: FONTS.serif, fontSize: 24, color: palette.text }}>{d}</Text>
                   <Text style={[styles.chipText, { color: palette.textFaint }]}>{t('minutes')}</Text>
                 </Chip>
@@ -142,7 +148,6 @@ export default function AdvancedScreen() {
                       {
                         backgroundColor: voice === v.id ? palette.selectedBg : palette.glass,
                         borderColor: voice === v.id ? palette.line : palette.glassBorder,
-                        borderWidth: voice === v.id ? 1.4 : StyleSheet.hairlineWidth,
                       },
                     ]}
                   >
@@ -179,7 +184,7 @@ export default function AdvancedScreen() {
           {step === 4 && (
             <View style={{ gap: 14 }}>
               {ENERGIES.map((e) => (
-                <Chip key={e.id} selected={energy === e.id} onPress={() => setEnergy(e.id)} grow>
+                <Chip key={e.id} selected={energy === e.id} onPress={() => setEnergy(e.id)} grow palette={palette} dark={dark}>
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 16, color: palette.text }}>{t(e.tKey)}</Text>
                     <Text style={{ fontFamily: FONTS.sans, fontSize: 13, color: palette.textFaint, marginTop: 2 }}>
@@ -229,6 +234,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderRadius: RADII.button,
+    borderWidth: 1.4,
     overflow: 'hidden',
     justifyContent: 'center',
   },
@@ -240,6 +246,7 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 18,
     borderRadius: RADII.card,
+    borderWidth: 1.4,
     overflow: 'hidden',
   },
   footer: { alignItems: 'center', gap: 12, paddingHorizontal: 28, paddingBottom: 24 },
