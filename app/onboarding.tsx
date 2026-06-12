@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '../src/components/GradientBackground';
 import { AuroraFigure, Pose } from '../src/components/AuroraFigure';
 import { PathTrail } from '../src/components/PathTrail';
-import { Sparkle } from '../src/components/Sparkle';
+import { KeiroLogo } from '../src/components/KeiroLogo';
 import { Body, MicroLabel, PrimaryButton, Title } from '../src/components/UI';
 import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES } from '../src/theme';
@@ -50,10 +50,7 @@ export default function Onboarding() {
     <GradientBackground>
       <SafeAreaView style={styles.fill}>
         <View style={styles.topRow}>
-          <View style={styles.brandRow}>
-            <Sparkle size={14} color={palette.text} />
-            <Text style={[styles.brand, { color: palette.text }]}>Keiro</Text>
-          </View>
+          <KeiroLogo size={20} color={palette.text} />
           <Pressable onPress={finish} hitSlop={12}>
             <Text style={{ fontFamily: FONTS.sans, color: palette.textFaint, fontSize: 14 }}>{t('skip')}</Text>
           </Pressable>

@@ -259,7 +259,9 @@ export async function generateMeditation(config: SessionConfig): Promise<Meditat
     ({ title, texts } = buildDemoScript(config));
   }
 
-  const durationSec = config.durationMin * 60;
+  // organic duration: ±10s around the nominal time, never a hard cut
+  const jitter = Math.round((Math.random() * 2 - 1) * 10);
+  const durationSec = config.durationMin * 60 + jitter;
   return {
     id: `${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
     title,

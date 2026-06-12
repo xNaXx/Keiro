@@ -6,7 +6,7 @@ import { GradientBackground } from '../../src/components/GradientBackground';
 import { AuroraFigure } from '../../src/components/AuroraFigure';
 import { RingFlower } from '../../src/components/RingFlower';
 import { Sparkle } from '../../src/components/Sparkle';
-import { MicroLabel } from '../../src/components/UI';
+import { Brand } from '../../src/components/KeiroLogo';
 import { useApp } from '../../src/store';
 import { FONTS, MOOD_PALETTES } from '../../src/theme';
 import { EnergyId, MomentId, SessionConfig, currentMoment } from '../../src/data';
@@ -92,7 +92,7 @@ export default function GeneratingScreen() {
           </View>
         </View>
         <View style={{ alignItems: 'center', paddingBottom: 36 }}>
-          <MicroLabel>keiro</MicroLabel>
+          <Brand color={palette.textSoft} />
         </View>
       </SafeAreaView>
     </GradientBackground>

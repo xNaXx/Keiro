@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '../../src/components/GradientBackground';
 import { BackButton, Body, GlassCard, MicroLabel, Title } from '../../src/components/UI';
 import { Sparkle } from '../../src/components/Sparkle';
+import { Brand } from '../../src/components/KeiroLogo';
 import { Gear } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
 import { FONTS } from '../../src/theme';
@@ -18,7 +19,7 @@ export default function ModeScreen() {
       <SafeAreaView style={styles.fill}>
         <View style={styles.header}>
           <BackButton />
-          <MicroLabel>{t('mode_label')}</MicroLabel>
+          <Brand color={palette.text} />
           <View style={{ width: 44 }} />
         </View>
 

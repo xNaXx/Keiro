@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { GradientBackground } from '../../src/components/GradientBackground';
 import { MoodIcon } from '../../src/components/MoodIcon';
+import { Brand } from '../../src/components/KeiroLogo';
 import { BackButton, MicroLabel, Tap, Title } from '../../src/components/UI';
 import { useApp } from '../../src/store';
 import { FONTS, RADII } from '../../src/theme';
@@ -24,7 +25,7 @@ export default function SimpleScreen() {
       <SafeAreaView style={styles.fill}>
         <View style={styles.header}>
           <BackButton />
-          <MicroLabel>{t('mood_label')}</MicroLabel>
+          <Brand color={palette.text} />
           <View style={{ width: 44 }} />
         </View>
 
