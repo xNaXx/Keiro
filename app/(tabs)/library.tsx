@@ -73,7 +73,7 @@ export default function LibraryScreen() {
                 onPress={() => setTab(k)}
                 style={[
                   styles.tabBtn,
-                  tab === k && { backgroundColor: palette.glassStrong, borderRadius: 22 },
+                  tab === k && { backgroundColor: palette.selectedBg, borderRadius: 22 },
                 ]}
               >
                 <Text

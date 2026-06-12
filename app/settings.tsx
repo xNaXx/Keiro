@@ -32,7 +32,7 @@ export default function SettingsScreen() {
           <Pressable
             key={o.id}
             onPress={() => onChange(o.id)}
-            style={[styles.segmentBtn, sel && { backgroundColor: palette.glassStrong, borderRadius: 20 }]}
+            style={[styles.segmentBtn, sel && { backgroundColor: palette.selectedBg, borderRadius: 20 }]}
           >
             {o.icon}
             <Text
@@ -102,9 +102,9 @@ export default function SettingsScreen() {
                         style={[
                           styles.voiceChip,
                           {
-                            backgroundColor: sel ? palette.glassStrong : palette.glass,
+                            backgroundColor: sel ? palette.selectedBg : palette.glass,
                             borderColor: sel ? palette.line : palette.glassBorder,
-                            borderWidth: sel ? 1 : StyleSheet.hairlineWidth,
+                            borderWidth: sel ? 1.4 : StyleSheet.hairlineWidth,
                           },
                         ]}
                       >

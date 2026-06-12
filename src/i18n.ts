@@ -13,6 +13,7 @@ const dict: Dict = {
 
   // onboarding
   ob_tag: { es: 'sendero', en: 'path' },
+  brand_tag: { es: 'meditation app', en: 'meditation app' },
   ob1_title: { es: 'Todo camino empieza\ncon un paso', en: 'Every path begins\nwith a single step' },
   ob1_body: { es: 'Keiro significa sendero: el camino que descubres a medida que lo recorres.', en: 'Keiro means path: the way you discover as you walk it.' },
   ob2_title: { es: 'Meditaciones que\nnacen para ti', en: 'Meditations born\njust for you' },

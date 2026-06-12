@@ -45,13 +45,8 @@ export default function HomeScreen() {
             <Text style={[styles.question, { color: palette.text }]}>{t(questionKey)}</Text>
 
             <Tap onPress={() => router.push('/create/mode')} scaleTo={0.9}>
-              <View
-                style={[
-                  styles.plus,
-                  { backgroundColor: dark ? 'rgba(240,244,255,0.92)' : 'rgba(58,53,80,0.85)' },
-                ]}
-              >
-                <Plus color={dark ? '#10142e' : '#fff'} size={26} strokeWidth={2} />
+              <View style={[styles.plus, { borderColor: palette.line }]}>
+                <Plus color={palette.text} size={26} strokeWidth={1.3} />
               </View>
             </Tap>
 
@@ -69,12 +64,8 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <View style={styles.cards}>
-            <GlassCard onPress={() => router.push('/create/mode')} style={{ flex: 1 }}>
-              <Sparkle size={15} color={palette.textSoft} />
-              <Text style={[styles.cardTitle, { color: palette.text }]}>{t('new_session')}</Text>
-            </GlassCard>
-            {last && lastMood ? (
+          {last && lastMood && (
+            <View style={styles.cards}>
               <GlassCard
                 onPress={() => router.push({ pathname: '/player', params: { id: last.id } })}
                 style={{ flex: 1 }}
@@ -90,13 +81,8 @@ export default function HomeScreen() {
                   {lastMood.label[language]} · {last.config.durationMin} {t('minutes')}
                 </Text>
               </GlassCard>
-            ) : (
-              <GlassCard style={{ flex: 1 }}>
-                <MicroLabel>{t('mood_label')}</MicroLabel>
-                <Text style={[styles.cardTitle, { color: palette.text }]}>{t('today_i_feel')}…</Text>
-              </GlassCard>
-            )}
-          </View>
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
     </GradientBackground>
@@ -121,6 +107,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,

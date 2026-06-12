@@ -66,7 +66,7 @@ export default function Auth() {
           <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
             <View style={styles.logoBlock}>
               <KeiroLogo size={46} color={palette.text} />
-              <MicroLabel>{t('ob_tag')}</MicroLabel>
+              <MicroLabel>{t('brand_tag')}</MicroLabel>
             </View>
 
             <Text style={[styles.welcome, { color: palette.text }]}>{t('auth_welcome')}</Text>

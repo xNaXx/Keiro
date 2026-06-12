@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '../../src/components/GradientBackground';
-import { BackButton, Body, GlassCard, MicroLabel, Title } from '../../src/components/UI';
+import { BackButton, Body, GlassCard, HeaderActions, MicroLabel, Title } from '../../src/components/UI';
 import { Sparkle } from '../../src/components/Sparkle';
 import { Brand } from '../../src/components/KeiroLogo';
 import { Gear } from '../../src/components/Icons';
@@ -20,7 +20,7 @@ export default function ModeScreen() {
         <View style={styles.header}>
           <BackButton />
           <Brand color={palette.text} />
-          <View style={{ width: 44 }} />
+          <HeaderActions />
         </View>
 
         <View style={styles.center}>

@@ -13,6 +13,17 @@ import { Language } from '../i18n';
 
 const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
 
+// Chrome quirks: voices load async, and the synth engine silently pauses
+// after ~15s idle. Warm the voice list up and keep the engine awake.
+if (isWeb && 'speechSynthesis' in window) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  setInterval(() => {
+    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) return;
+    window.speechSynthesis.resume();
+  }, 5000);
+}
+
 const LEVEL_FULL = 0.04;
 const LEVEL_DUCKED = 0.012;
 
@@ -123,18 +134,25 @@ function pickBrowserVoice(lang: Language, gender: 'female' | 'male'): SpeechSynt
  */
 export function speakLine(text: string, lang: Language, gender: 'female' | 'male' = 'female') {
   if (!isWeb || !('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  synth.resume();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang === 'es' ? 'es-ES' : 'en-US';
   u.rate = 0.82;
   u.pitch = gender === 'male' ? 0.85 : 1.0;
-  u.volume = 0.95;
+  u.volume = 1;
   const voice = pickBrowserVoice(lang, gender);
   if (voice) u.voice = voice;
   u.onstart = () => rampAmbient(LEVEL_DUCKED, 0.7);
   u.onend = () => rampAmbient(LEVEL_FULL, 3);
   u.onerror = () => rampAmbient(LEVEL_FULL, 3);
-  window.speechSynthesis.speak(u);
+  // safety: if onend never fires (Chrome bug), un-duck after an estimate
+  const estMs = Math.max(3000, text.length * 90);
+  setTimeout(() => {
+    if (!synth.speaking) rampAmbient(LEVEL_FULL, 3);
+  }, estMs);
+  synth.speak(u);
 }
 
 export function stopSpeech() {
