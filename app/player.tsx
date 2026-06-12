@@ -7,13 +7,13 @@ import { GradientBackground } from '../src/components/GradientBackground';
 import { FigureBackdrop, FigureName } from '../src/components/FigureArt';
 import { RingFlower } from '../src/components/RingFlower';
 import { Sparkle } from '../src/components/Sparkle';
-import { BackButton, MicroLabel, PrimaryButton, SettingsButton, Tap, ThemeToggle } from '../src/components/UI';
-import { Check, Download, Pause, Play, SkipBack, SkipFwd } from '../src/components/Icons';
+import { BackButton, LockBadge, MicroLabel, PrimaryButton, SettingsButton, Tap, ThemeToggle } from '../src/components/UI';
+import { Check, Download, MusicNote, Pause, Play, SkipBack, SkipFwd, VoiceWave } from '../src/components/Icons';
 import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES, RADII } from '../src/theme';
 import { MOODS, VOICES } from '../src/data';
 import { hasElevenLabsKey } from '../src/services/elevenlabs';
-import { fadeOutAmbient, onSpeaking, renderAmbientWav, speakLine, startAmbient, stopAmbient, stopSpeech } from '../src/services/demoAudio';
+import { fadeOutAmbient, getVolumes, onSpeaking, renderAmbientWav, setMusicVolume, setVoiceVolume, speakLine, startAmbient, stopAmbient, stopSpeech } from '../src/services/demoAudio';
 import { VoiceOrb } from '../src/components/VoiceOrb';
 import { Brand } from '../src/components/KeiroLogo';
 
@@ -21,6 +21,62 @@ function fmt(sec: number) {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+/** Hairline volume slider: a white line with a small thumb. */
+function VolumeSlider({
+  icon,
+  value,
+  onChange,
+  palette,
+}: {
+  icon: React.ReactNode;
+  value: number;
+  onChange: (v: number) => void;
+  palette: any;
+}) {
+  const w = useRef(1);
+  const set = (e: GestureResponderEvent) => {
+    const v = Math.min(1, Math.max(0, e.nativeEvent.locationX / w.current));
+    onChange(v);
+  };
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      {icon}
+      <View
+        style={{ flex: 1, height: 26, justifyContent: 'center' }}
+        onLayout={(e) => (w.current = e.nativeEvent.layout.width)}
+        onStartShouldSetResponder={() => true}
+        onMoveShouldSetResponder={() => true}
+        onResponderGrant={set}
+        onResponderMove={set}
+      >
+        <View style={{ height: 1.5, borderRadius: 1, backgroundColor: palette.textFaint, opacity: 0.7 }} />
+        <View
+          style={{
+            position: 'absolute',
+            left: 0,
+            width: `${value * 100}%`,
+            height: 1.5,
+            borderRadius: 1,
+            backgroundColor: palette.line,
+          }}
+        />
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            left: `${value * 100}%`,
+            marginLeft: -6,
+            width: 12,
+            height: 12,
+            borderRadius: 6,
+            backgroundColor: palette.line,
+          }}
+        />
+      </View>
+    </View>
+  );
 }
 
 /** Module-level so a re-render never remounts it mid-animation. */
@@ -58,7 +114,7 @@ function seededHeights(n: number) {
 
 export default function PlayerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, palette, sessions, toggleDownload, language } = useApp();
+  const { t, palette, sessions, toggleDownload, language, plan } = useApp();
   const router = useRouter();
 
   const meditation = sessions.find((s) => s.id === id);
@@ -73,6 +129,7 @@ export default function PlayerScreen() {
   const sheetShift = useRef(new Animated.Value(0)).current;
   const sheetH = useRef(0);
   const [done, setDone] = useState(false);
+  const [vols, setVols] = useState(getVolumes());
   const lineFade = useRef(new Animated.Value(0)).current;
   const waveWidth = useRef(1);
 
@@ -179,6 +236,10 @@ export default function PlayerScreen() {
   };
 
   const downloadFile = async () => {
+    if (plan === 'free') {
+      router.push('/paywall');
+      return;
+    }
     toggleDownload(meditation.id);
     if (Platform.OS !== 'web' || meditation.downloaded) return;
     try {
@@ -253,19 +314,22 @@ export default function PlayerScreen() {
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <ThemeToggle />
             <SettingsButton />
-            <Tap onPress={downloadFile} hitSlop={6} scaleTo={0.88}>
-              <BlurView
-                intensity={24}
-                tint={palette.name === 'dark' ? 'dark' : 'light'}
-                style={[styles.iconBtn, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
-              >
-                {meditation.downloaded ? (
-                  <Check color={palette.accent} size={19} />
-                ) : (
-                  <Download color={palette.text} size={19} />
-                )}
-              </BlurView>
-            </Tap>
+            <View>
+              <Tap onPress={downloadFile} hitSlop={6} scaleTo={0.88}>
+                <BlurView
+                  intensity={24}
+                  tint={palette.name === 'dark' ? 'dark' : 'light'}
+                  style={[styles.iconBtn, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
+                >
+                  {meditation.downloaded ? (
+                    <Check color={palette.accent} size={19} />
+                  ) : (
+                    <Download color={palette.text} size={19} />
+                  )}
+                </BlurView>
+              </Tap>
+              {plan === 'free' && <LockBadge />}
+            </View>
           </View>
         </View>
 
@@ -370,12 +434,33 @@ export default function PlayerScreen() {
             <Text style={[styles.time, { color: palette.textSoft }]}>{fmt(durationSec)}</Text>
           </View>
 
+          <View style={{ gap: 10, marginTop: 14, paddingHorizontal: 6 }}>
+            <VolumeSlider
+              icon={<VoiceWave color={palette.textSoft} size={17} />}
+              value={vols.voice}
+              onChange={(v) => {
+                setVoiceVolume(v);
+                setVols({ ...vols, voice: v });
+              }}
+              palette={palette}
+            />
+            <VolumeSlider
+              icon={<MusicNote color={palette.textSoft} size={17} />}
+              value={vols.music}
+              onChange={(v) => {
+                setMusicVolume(v);
+                setVols({ ...vols, music: v });
+              }}
+              palette={palette}
+            />
+          </View>
+
           <View style={styles.controls}>
-            <ControlTile onPress={() => setPlaying(!playing)} wide palette={palette}>
-              {playing ? <Pause color={palette.text} size={24} /> : <Play color={palette.text} size={24} />}
-            </ControlTile>
             <ControlTile onPress={() => skip(-15)} palette={palette}>
               <SkipBack color={palette.text} size={24} />
+            </ControlTile>
+            <ControlTile onPress={() => setPlaying(!playing)} wide palette={palette}>
+              {playing ? <Pause color={palette.text} size={24} /> : <Play color={palette.text} size={24} />}
             </ControlTile>
             <ControlTile onPress={() => skip(15)} palette={palette}>
               <SkipFwd color={palette.text} size={24} />

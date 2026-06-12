@@ -168,6 +168,30 @@ export const SpeakerWave = (p: P) => (
   </D>
 );
 
+export const MusicNote = (p: P) => (
+  <D {...p}>
+    <Path d="M9 17.5 L9 6.5 L18 4.5 L18 15.5" />
+    <Circle cx="6.8" cy="17.5" r="2.3" />
+    <Circle cx="15.8" cy="15.5" r="2.3" />
+  </D>
+);
+
+export const VoiceWave = (p: P) => (
+  <D {...p}>
+    <Path d="M9.5 6 A 3.2 3.2 0 0 1 12.7 9.2 C12.7 10.4 12.2 11 12.6 12 C13 13 14 13.2 14 14.2 C14 15 13.4 15.4 13.4 16.2 L13.4 18.5" />
+    <Path d="M9.5 6 C7 6.5 5.8 8.5 5.9 10.5 C6 12.5 7.2 13 7.2 14.5 L7.2 18.5" />
+    <Path d="M16.5 8.5 A 5.5 5.5 0 0 1 16.5 14" />
+    <Path d="M19 6.8 A 8.5 8.5 0 0 1 19 15.7" />
+  </D>
+);
+
+export const Lock = (p: P) => (
+  <D {...p}>
+    <Rect x="6" y="10.5" width="12" height="9" rx="2.5" />
+    <Path d="M8.5 10.5 L8.5 8 A 3.5 3.5 0 0 1 15.5 8 L15.5 10.5" />
+  </D>
+);
+
 export const GoogleLogo = ({ size = 20 }: P) => (
   <Svg width={size} height={size} viewBox="0 0 24 24">
     <Path d="M21.6 12.2 C21.6 11.5 21.5 10.9 21.4 10.2 L12 10.2 L12 14 L17.4 14 C17.2 15.2 16.5 16.3 15.4 17 L15.4 19.5 L18.6 19.5 C20.5 17.7 21.6 15.2 21.6 12.2 Z" fill="#4285F4" />

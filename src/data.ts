@@ -27,6 +27,8 @@ export interface Voice {
   desc: { es: string; en: string };
   /** tint for the voice card orb */
   tint: string;
+  /** premium-only voice */
+  premium?: boolean;
 }
 
 export const VOICES: Voice[] = [
@@ -45,6 +47,7 @@ export const VOICES: Voice[] = [
     gender: 'female',
     desc: { es: 'Serena y cristalina', en: 'Serene and crystal-clear' },
     tint: '#8fb4ef',
+    premium: true,
   },
   {
     id: 'mateo',
@@ -61,6 +64,7 @@ export const VOICES: Voice[] = [
     gender: 'male',
     desc: { es: 'Suave y luminoso', en: 'Soft and bright' },
     tint: '#73bdb4',
+    premium: true,
   },
 ];
 

@@ -70,7 +70,7 @@ export default function SettingsScreen() {
               <Text style={[styles.section, { color: palette.textSoft }]}>{t('settings_appearance')}</Text>
               <Segment
                 value={themeMode}
-                onChange={(v) => setThemeMode(v as any)}
+                onChange={(v) => (plan === 'free' && v !== 'light' ? router.push('/paywall') : setThemeMode(v as any))}
                 options={[
                   { id: 'light', label: t('theme_light'), icon: <Sun color={themeMode === 'light' ? palette.text : palette.textFaint} size={15} /> },
                   { id: 'dark', label: t('theme_dark'), icon: <Moon color={themeMode === 'dark' ? palette.text : palette.textFaint} size={15} /> },
@@ -98,7 +98,10 @@ export default function SettingsScreen() {
                 {VOICES.map((v) => {
                   const sel = preferredVoice === v.id;
                   return (
-                    <Pressable key={v.id} onPress={() => setPreferredVoice(v.id)}>
+                    <Pressable
+                      key={v.id}
+                      onPress={() => (v.premium && plan === 'free' ? router.push('/paywall') : setPreferredVoice(v.id))}
+                    >
                       <BlurView
                         intensity={22}
                         tint={dark ? 'dark' : 'light'}

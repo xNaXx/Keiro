@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { useApp } from '../store';
 import { FONTS, RADII } from '../theme';
-import { ArrowLeft, Gear, Moon, Sun } from './Icons';
+import { ArrowLeft, Gear, Home, Lock, Moon, Sun } from './Icons';
 
 /**
  * Pressable with a soft spring scale — every touch in Keiro breathes a
@@ -26,21 +26,32 @@ export function Tap({
   hitSlop?: number;
 }) {
   const scale = useRef(new Animated.Value(1)).current;
-  const pressed = useRef(false);
+  const dim = useRef(new Animated.Value(1)).current;
+  const soft = Math.min(1, scaleTo + (1 - scaleTo) * 0.7); // keep movement tiny
 
   const down = () => {
-    pressed.current = true;
-    Animated.timing(scale, { toValue: scaleTo, duration: 150, useNativeDriver: true }).start();
+    Animated.parallel([
+      Animated.timing(scale, { toValue: soft, duration: 180, useNativeDriver: true }),
+      Animated.timing(dim, { toValue: 0.72, duration: 180, useNativeDriver: true }),
+    ]).start();
   };
   const up = () => {
-    pressed.current = false;
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 8, bounciness: 2 }).start();
+    Animated.parallel([
+      Animated.timing(scale, { toValue: 1, duration: 380, useNativeDriver: true }),
+      Animated.timing(dim, { toValue: 1, duration: 380, useNativeDriver: true }),
+    ]).start();
   };
-  // mouse clicks are near-instant: guarantee a visible pulse anyway
+  // mouse clicks are near-instant: guarantee a visible soft pulse anyway
   const pulse = () => {
     Animated.sequence([
-      Animated.timing(scale, { toValue: scaleTo - 0.01, duration: 140, useNativeDriver: true }),
-      Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 8, bounciness: 2 }),
+      Animated.parallel([
+        Animated.timing(scale, { toValue: soft, duration: 140, useNativeDriver: true }),
+        Animated.timing(dim, { toValue: 0.72, duration: 140, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(scale, { toValue: 1, duration: 380, useNativeDriver: true }),
+        Animated.timing(dim, { toValue: 1, duration: 380, useNativeDriver: true }),
+      ]),
     ]).start();
   };
 
@@ -56,7 +67,7 @@ export function Tap({
       onPressOut={up}
       style={style}
     >
-      <Animated.View style={{ transform: [{ scale }] }}>{children}</Animated.View>
+      <Animated.View style={{ transform: [{ scale }], opacity: dim }}>{children}</Animated.View>
     </Pressable>
   );
 }
@@ -142,14 +153,65 @@ export function BackButton() {
   );
 }
 
-/** Always-visible light/dark switch: one tap flips the theme. */
-export function ThemeToggle() {
-  const { palette, setThemeMode } = useApp();
-  const dark = palette.name === 'dark';
+/** Tiny lock badge over a gated control. */
+export function LockBadge() {
+  const { palette } = useApp();
   return (
-    <GlassIconButton onPress={() => setThemeMode(dark ? 'light' : 'dark')}>
-      {dark ? <Sun color={palette.text} size={19} /> : <Moon color={palette.text} size={18} />}
+    <View
+      style={{
+        position: 'absolute',
+        top: -3,
+        right: -3,
+        width: 17,
+        height: 17,
+        borderRadius: 9,
+        backgroundColor: palette.name === 'dark' ? 'rgba(240,244,255,0.92)' : 'rgba(58,53,80,0.85)',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Lock color={palette.name === 'dark' ? '#10142e' : '#fff'} size={10} strokeWidth={2} />
+    </View>
+  );
+}
+
+/** Always-visible light/dark switch. Dark mode is a premium perk. */
+export function ThemeToggle() {
+  const { palette, setThemeMode, plan } = useApp();
+  const router = useRouter();
+  const dark = palette.name === 'dark';
+  const locked = plan === 'free';
+  return (
+    <View>
+      <GlassIconButton
+        onPress={() => (locked ? router.push('/paywall') : setThemeMode(dark ? 'light' : 'dark'))}
+      >
+        {dark ? <Sun color={palette.text} size={19} /> : <Moon color={palette.text} size={18} />}
+      </GlassIconButton>
+      {locked && <LockBadge />}
+    </View>
+  );
+}
+
+/** Straight back to home from anywhere in the create flow. */
+export function HomeButton() {
+  const router = useRouter();
+  const { palette } = useApp();
+  return (
+    <GlassIconButton onPress={() => router.dismissTo('/home')}>
+      <Home color={palette.text} size={19} />
     </GlassIconButton>
+  );
+}
+
+/** Header actions for the create flow: home + theme + settings. */
+export function CreateHeaderActions() {
+  return (
+    <View style={{ flexDirection: 'row', gap: 8 }}>
+      <HomeButton />
+      <ThemeToggle />
+      <SettingsButton />
+    </View>
   );
 }
 
@@ -239,17 +301,18 @@ export function PrimaryButton({
   style?: ViewStyle;
 }) {
   const { palette } = useApp();
-  const dark = palette.name === 'dark';
   return (
     <Tap onPress={onPress} style={style} scaleTo={0.97}>
-      <View
+      <BlurView
+        intensity={32}
+        tint={palette.name === 'dark' ? 'dark' : 'light'}
         style={[
           styles.primary,
-          { backgroundColor: dark ? 'rgba(240,244,255,0.92)' : 'rgba(255,255,255,0.75)' },
+          { backgroundColor: palette.glassStrong, borderColor: palette.line, borderWidth: 1 },
         ]}
       >
-        <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 16, color: '#23284a' }}>{label}</Text>
-      </View>
+        <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 16, color: palette.text }}>{label}</Text>
+      </BlurView>
     </Tap>
   );
 }
@@ -267,5 +330,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
+    overflow: 'hidden',
   },
 });

@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Animated, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { Sparkle } from './Sparkle';
@@ -105,11 +105,15 @@ export function GradientBackground({
 }) {
   const { palette } = useApp();
   const stops = colors ?? palette.bg;
+  const fade = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(fade, { toValue: 1, duration: 480, useNativeDriver: true }).start();
+  }, [fade]);
   return (
     <LinearGradient colors={stops} style={styles.fill} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }}>
       {glow && <Glow colors={glow} />}
       {palette.stars && <Stars />}
-      {children}
+      <Animated.View style={{ flex: 1, opacity: fade }}>{children}</Animated.View>
     </LinearGradient>
   );
 }

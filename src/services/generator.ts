@@ -245,6 +245,43 @@ function timeline(texts: string[], durationSec: number): MeditationLine[] {
   return texts.map((text, i) => ({ at: Math.round(intro + i * step), text }));
 }
 
+/** Seconds of silence between lines for each voice pace. */
+const DENSITY_INTERVAL = { low: 50, medium: 28, high: 14 } as const;
+
+/**
+ * Fit the script to the chosen pace: a 'high' session speaks every ~14s,
+ * 'low' leaves long silences. Extra lines are drawn from the banks
+ * (avoiding immediate repeats) when the base script runs short.
+ */
+function fitToDensity(texts: string[], config: SessionConfig): string[] {
+  const interval = DENSITY_INTERVAL[config.density] ?? DENSITY_INTERVAL.medium;
+  const usable = config.durationMin * 60 - 36;
+  const target = Math.max(5, Math.round(usable / interval));
+
+  if (texts.length >= target) {
+    // keep opening and closing, thin out the middle evenly
+    const middle = texts.slice(1, -1);
+    const keep = Math.max(target - 2, 1);
+    const out: string[] = [texts[0]];
+    for (let i = 0; i < keep; i++) out.push(middle[Math.floor((i * middle.length) / keep)]);
+    out.push(texts[texts.length - 1]);
+    return out;
+  }
+
+  const lang = config.language;
+  const mood = MOOD_LINES[config.mood] ?? MOOD_LINES.calm;
+  const pool = [...mood[lang], ...BREATHING[lang], ...BODY[lang], ...PATH_LINES[lang]];
+  const closing = texts[texts.length - 1];
+  const out = texts.slice(0, -1);
+  let guard = 0;
+  while (out.length < target - 1 && guard++ < 200) {
+    const candidate = pool[Math.floor(Math.random() * pool.length)];
+    if (candidate !== out[out.length - 1]) out.push(candidate);
+  }
+  out.push(closing);
+  return out;
+}
+
 export async function generateMeditation(config: SessionConfig): Promise<Meditation> {
   let title: string;
   let texts: string[];
@@ -268,7 +305,7 @@ export async function generateMeditation(config: SessionConfig): Promise<Meditat
     id: `${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
     title,
     config,
-    lines: timeline(texts, durationSec),
+    lines: timeline(fitToDensity(texts, config), durationSec),
     durationSec,
     createdAt: Date.now(),
     downloaded: false,

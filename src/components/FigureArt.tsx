@@ -1,5 +1,5 @@
-import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Image, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Float } from './Motion';
 
@@ -37,8 +37,12 @@ export function FigureBackdrop({
   fadeTo?: string;
   children?: React.ReactNode;
 }) {
+  const fade = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(fade, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+  }, [fade]);
   return (
-    <View style={styles.fill}>
+    <Animated.View style={[styles.fill, { opacity: fade }]}>
       <Float distance={8} duration={12000} scaleAmount={0.045} style={StyleSheet.absoluteFill as any}>
         <Image source={FIGURES[name]} style={styles.img} resizeMode="cover" />
       </Float>
@@ -50,7 +54,7 @@ export function FigureBackdrop({
         />
       )}
       {children}
-    </View>
+    </Animated.View>
   );
 }
 
