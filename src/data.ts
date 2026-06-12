@@ -123,6 +123,8 @@ export interface SessionConfig {
   /** solfeggio frequency when soundType === 'hz' */
   hzFreq?: number;
   density: VoiceDensity;
+  /** grammatical gender for addressing the listener (Spanish) */
+  userGender?: 'male' | 'female';
 }
 
 export interface MeditationLine {

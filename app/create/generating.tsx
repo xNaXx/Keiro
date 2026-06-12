@@ -36,7 +36,7 @@ export default function GeneratingScreen() {
     hz?: string;
     density?: string;
   }>();
-  const { t, palette, language, preferredVoice, addSession } = useApp();
+  const { t, palette, language, preferredVoice, addSession, user } = useApp();
   const router = useRouter();
   const [phase, setPhase] = useState(0);
   const fade = useRef(new Animated.Value(1)).current;
@@ -62,6 +62,7 @@ export default function GeneratingScreen() {
       soundType: (params.sound as any) ?? 'ambient',
       hzFreq: params.hz ? Number(params.hz) : undefined,
       density: (params.density as any) ?? 'medium',
+      userGender: user?.gender ?? 'male',
     };
 
     const phases = setInterval(() => setPhase((p) => (p + 1) % 4), 1700);

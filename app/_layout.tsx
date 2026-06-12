@@ -8,20 +8,27 @@ import {
   CormorantGaramond_500Medium_Italic,
 } from '@expo-google-fonts/cormorant-garamond';
 import { AppProvider, useApp } from '../src/store';
+import { registerThemeFade } from '../src/themeFade';
+import { UpgradeModal } from '../src/components/UpgradeModal';
 
 function Root() {
   const { palette, hydrated } = useApp();
   const veil = useRef(new Animated.Value(0)).current;
-  const prevTheme = useRef(palette.name);
+  const [veilColor, setVeilColor] = React.useState(palette.bg[1]);
+  const paletteRef = useRef(palette);
+  paletteRef.current = palette;
 
-  // theme changes melt through a soft veil instead of cutting
+  // veil rises in the OLD theme's color, the swap happens under full cover,
+  // then the veil dissolves into the new theme — no flash anywhere
   useEffect(() => {
-    if (prevTheme.current !== palette.name) {
-      prevTheme.current = palette.name;
-      veil.setValue(1);
-      Animated.timing(veil, { toValue: 0, duration: 900, useNativeDriver: true }).start();
-    }
-  }, [palette.name, veil]);
+    return registerThemeFade((swap) => {
+      setVeilColor(paletteRef.current.bg[1]);
+      Animated.timing(veil, { toValue: 1, duration: 240, useNativeDriver: true }).start(() => {
+        swap();
+        Animated.timing(veil, { toValue: 0, duration: 800, useNativeDriver: true, delay: 60 }).start();
+      });
+    });
+  }, [veil]);
 
   if (!hydrated) return <View style={{ flex: 1, backgroundColor: '#171231' }} />;
   return (
@@ -34,9 +41,10 @@ function Root() {
           contentStyle: { backgroundColor: palette.bg[0] },
         }}
       />
+      <UpgradeModal />
       <Animated.View
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, { backgroundColor: palette.bg[1], opacity: veil }]}
+        style={[StyleSheet.absoluteFill, { backgroundColor: veilColor, opacity: veil }]}
       />
     </>
   );

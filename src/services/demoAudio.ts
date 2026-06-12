@@ -37,9 +37,14 @@ export function setMusicVolume(v: number) {
   rampAmbient(currentLevel === 'full' ? LEVEL_FULL : LEVEL_DUCKED, 0.15);
 }
 
-/** 0..1 — applies to the next spoken line. */
+/** 0..1 — applies to the next spoken line; 0 silences the current one too. */
 export function setVoiceVolume(v: number) {
   voiceVol = Math.max(0, Math.min(1, v));
+  if (voiceVol <= 0.03 && isWeb && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    speakingListener?.(false);
+    rampAmbient(LEVEL_FULL, 1.5);
+  }
 }
 
 export function getVolumes() {
@@ -113,10 +118,14 @@ export function startAmbient(hz?: number) {
 function rampAmbient(level: number, seconds: number) {
   if (!ambient || !ctx) return;
   currentLevel = level >= LEVEL_FULL ? 'full' : 'ducked';
-  const g = ambient.gain.gain;
-  g.cancelScheduledValues(ctx.currentTime);
-  g.setValueAtTime(g.value, ctx.currentTime);
-  g.linearRampToValueAtTime(level * musicVol, ctx.currentTime + seconds);
+  const g = ambient.gain.gain as AudioParam & { cancelAndHoldAtTime?: (t: number) => void };
+  // cancelAndHoldAtTime keeps the curve continuous — no click on re-schedule
+  if (g.cancelAndHoldAtTime) g.cancelAndHoldAtTime(ctx.currentTime);
+  else {
+    g.cancelScheduledValues(ctx.currentTime);
+    g.setValueAtTime(g.value, ctx.currentTime);
+  }
+  g.setTargetAtTime(level * musicVol, ctx.currentTime, Math.max(0.05, seconds / 3));
 }
 
 /** Long goodbye for the end of a session. */
@@ -128,9 +137,13 @@ export function stopAmbient() {
   if (!ambient || !ctx) return;
   const { nodes, gain } = ambient;
   ambient = null;
-  gain.gain.cancelScheduledValues(ctx.currentTime);
-  gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
-  gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.2);
+  const g = gain.gain as AudioParam & { cancelAndHoldAtTime?: (t: number) => void };
+  if (g.cancelAndHoldAtTime) g.cancelAndHoldAtTime(ctx.currentTime);
+  else {
+    g.cancelScheduledValues(ctx.currentTime);
+    g.setValueAtTime(g.value, ctx.currentTime);
+  }
+  g.setTargetAtTime(0, ctx.currentTime, 0.35);
   setTimeout(
     () =>
       nodes.forEach((n) => {
@@ -160,6 +173,7 @@ function pickBrowserVoice(lang: Language, gender: 'female' | 'male'): SpeechSynt
  */
 export function speakLine(text: string, lang: Language, gender: 'female' | 'male' = 'female') {
   if (!isWeb || !('speechSynthesis' in window)) return;
+  if (voiceVol <= 0.03) return; // voice muted by its slider
   const synth = window.speechSynthesis;
   synth.cancel();
   synth.resume();

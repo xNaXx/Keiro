@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MoodIcon } from '../components/MoodIcon';
-import { Body, GlassCard, HeaderActions, LockBadge, MicroLabel, Tap, Title } from '../components/UI';
+import { Body, GlassCard, HeaderActions, MicroLabel, Tap, Title } from '../components/UI';
 import { Check, Download } from '../components/Icons';
 import { Sparkle } from '../components/Sparkle';
 import { Brand } from '../components/KeiroLogo';
@@ -13,7 +13,7 @@ import { FONTS } from '../theme';
 import { MOODS, Meditation } from '../data';
 
 export function LibraryView() {
-  const { t, palette, sessions, toggleDownload, language, plan } = useApp();
+  const { t, palette, sessions, toggleDownload, language, plan, showUpgrade } = useApp();
   const router = useRouter();
   const [tab, setTab] = useState<'offline' | 'history'>('offline');
 
@@ -39,9 +39,9 @@ export function LibraryView() {
               })}
             </Text>
           </View>
-          <View>
+          <View style={plan === 'free' ? { opacity: 0.4 } : undefined}>
             <Tap
-              onPress={() => (plan === 'free' ? router.push('/paywall') : toggleDownload(m.id))}
+              onPress={() => (plan === 'free' ? showUpgrade() : toggleDownload(m.id))}
               hitSlop={10}
               scaleTo={0.85}
             >
@@ -51,7 +51,6 @@ export function LibraryView() {
                 <Download color={palette.textFaint} size={20} />
               )}
             </Tap>
-            {plan === 'free' && <LockBadge />}
           </View>
         </View>
       </GlassCard>

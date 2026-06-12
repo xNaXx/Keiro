@@ -8,6 +8,8 @@ import { Meditation } from './data';
 export interface User {
   name: string;
   age?: number;
+  /** how the app addresses you (Spanish grammar); defaults to masculine */
+  gender?: 'male' | 'female';
   photoUri?: string;
   email?: string;
   provider: 'google' | 'facebook' | 'apple' | 'email';
@@ -24,6 +26,9 @@ interface AppState {
   preferredVoice: string;
   sessions: Meditation[];
   plan: 'free' | 'premium';
+  upgradeVisible: boolean;
+  showUpgrade: () => void;
+  hideUpgrade: () => void;
 
   setOnboarded: (v: boolean) => void;
   signIn: (u: Omit<User, 'startedAt'>) => void;
@@ -54,6 +59,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [preferredVoice, setPreferredVoiceState] = useState('lua');
   const [sessions, setSessions] = useState<Meditation[]>([]);
   const [plan, setPlanState] = useState<'free' | 'premium'>('free');
+  const [upgradeVisible, setUpgradeVisible] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem(KEY)
@@ -99,6 +105,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     preferredVoice,
     sessions,
     plan,
+    upgradeVisible,
+    showUpgrade: () => setUpgradeVisible(true),
+    hideUpgrade: () => setUpgradeVisible(false),
     setOnboarded: setOnboardedState,
     signIn: (u) => setUser({ ...u, startedAt: Date.now() }),
     updateUser: (patch) => setUser((prev) => (prev ? { ...prev, ...patch } : prev)),
@@ -114,7 +123,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toggleDownload: (id) =>
       setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, downloaded: !s.downloaded } : s))),
     palette,
-    t: (key, vars) => translate(key, language, vars),
+    t: (key, vars) => translate(key, language, vars, user?.gender ?? 'male'),
     pathDay,
   };
 

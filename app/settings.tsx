@@ -9,13 +9,14 @@ import { Sparkle } from '../src/components/Sparkle';
 import { useRouter } from 'expo-router';
 import { Tap } from '../src/components/UI';
 import { useApp } from '../src/store';
+import { fadeTheme } from '../src/themeFade';
 import { FONTS } from '../src/theme';
 import { VOICES } from '../src/data';
 import { hasElevenLabsKey } from '../src/services/elevenlabs';
 import { hasClaudeKey } from '../src/services/claude';
 
 export default function SettingsScreen() {
-  const { t, palette, themeMode, setThemeMode, language, setLanguage, preferredVoice, setPreferredVoice, plan } = useApp();
+  const { t, palette, themeMode, setThemeMode, language, setLanguage, preferredVoice, setPreferredVoice, plan, showUpgrade } = useApp();
   const router = useRouter();
   const dark = palette.name === 'dark';
 
@@ -24,7 +25,7 @@ export default function SettingsScreen() {
     value,
     onChange,
   }: {
-    options: { id: string; label: string; icon?: React.ReactNode }[];
+    options: { id: string; label: string; icon?: React.ReactNode; dim?: boolean }[];
     value: string;
     onChange: (v: string) => void;
   }) => (
@@ -35,7 +36,11 @@ export default function SettingsScreen() {
           <Pressable
             key={o.id}
             onPress={() => onChange(o.id)}
-            style={[styles.segmentBtn, sel && { backgroundColor: palette.selectedBg, borderRadius: 20 }]}
+            style={[
+              styles.segmentBtn,
+              sel && { backgroundColor: palette.selectedBg, borderRadius: 20 },
+              o.dim && { opacity: 0.4 },
+            ]}
           >
             {o.icon}
             <Text
@@ -70,11 +75,11 @@ export default function SettingsScreen() {
               <Text style={[styles.section, { color: palette.textSoft }]}>{t('settings_appearance')}</Text>
               <Segment
                 value={themeMode}
-                onChange={(v) => (plan === 'free' && v !== 'light' ? router.push('/paywall') : setThemeMode(v as any))}
+                onChange={(v) => (plan === 'free' && v !== 'light' ? showUpgrade() : fadeTheme(() => setThemeMode(v as any)))}
                 options={[
                   { id: 'light', label: t('theme_light'), icon: <Sun color={themeMode === 'light' ? palette.text : palette.textFaint} size={15} /> },
-                  { id: 'dark', label: t('theme_dark'), icon: <Moon color={themeMode === 'dark' ? palette.text : palette.textFaint} size={15} /> },
-                  { id: 'system', label: t('theme_system') },
+                  { id: 'dark', label: t('theme_dark'), icon: <Moon color={themeMode === 'dark' ? palette.text : palette.textFaint} size={15} />, dim: plan === 'free' },
+                  { id: 'system', label: t('theme_system'), dim: plan === 'free' },
                 ]}
               />
             </View>
@@ -100,7 +105,7 @@ export default function SettingsScreen() {
                   return (
                     <Pressable
                       key={v.id}
-                      onPress={() => (v.premium && plan === 'free' ? router.push('/paywall') : setPreferredVoice(v.id))}
+                      onPress={() => (v.premium && plan === 'free' ? showUpgrade() : setPreferredVoice(v.id))}
                     >
                       <BlurView
                         intensity={22}
@@ -110,6 +115,7 @@ export default function SettingsScreen() {
                           {
                             backgroundColor: sel ? palette.selectedBg : palette.glass,
                             borderColor: sel ? palette.selectedBorder : palette.glassBorder,
+                            opacity: v.premium && plan === 'free' ? 0.4 : 1,
                           },
                         ]}
                       >

@@ -15,6 +15,7 @@ export default function Setup() {
   const [name, setName] = useState(user?.name ?? '');
   const [age, setAge] = useState(user?.age ? String(user.age) : '');
   const [photo, setPhoto] = useState<string | undefined>(user?.photoUri);
+  const [gender, setGender] = useState<'male' | 'female' | undefined>(user?.gender);
 
   const pickPhoto = async () => {
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -27,7 +28,7 @@ export default function Setup() {
   };
 
   const start = () => {
-    updateUser({ name: name.trim() || 'Viajero', age: age ? Number(age) : undefined, photoUri: photo });
+    updateUser({ name: name.trim() || 'Viajero', age: age ? Number(age) : undefined, photoUri: photo, gender });
     router.replace('/home');
   };
 
@@ -82,6 +83,28 @@ export default function Setup() {
                 { backgroundColor: palette.glass, borderColor: palette.glassBorder, color: palette.text },
               ]}
             />
+            <Text style={{ fontFamily: FONTS.sans, fontSize: 13, color: palette.textFaint, textAlign: 'center', marginTop: 4 }}>
+              {t('gender_q')}
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              {(['male', 'female'] as const).map((g) => (
+                <Pressable
+                  key={g}
+                  onPress={() => setGender(g)}
+                  style={[
+                    styles.genderChip,
+                    {
+                      backgroundColor: gender === g ? palette.selectedBg : palette.glass,
+                      borderColor: gender === g ? palette.selectedBorder : palette.glassBorder,
+                    },
+                  ]}
+                >
+                  <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 14, color: palette.text }}>
+                    {t(g === 'male' ? 'gender_m' : 'gender_f')}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
         </View>
 
@@ -113,5 +136,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     fontFamily: FONTS.sans,
     fontSize: 15,
+  },
+  genderChip: {
+    flex: 1,
+    height: 48,
+    borderRadius: RADII.button,
+    borderWidth: 1.4,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
