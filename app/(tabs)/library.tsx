@@ -3,12 +3,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '../../src/components/GradientBackground';
-import { MoodOrb } from '../../src/components/MoodOrb';
-import { Body, GlassCard, MicroLabel, Title } from '../../src/components/UI';
-import { Check, Download, Play } from '../../src/components/Icons';
+import { MoodIcon } from '../../src/components/MoodIcon';
+import { Body, GlassCard, HeaderActions, MicroLabel, Tap, Title } from '../../src/components/UI';
+import { Check, Download } from '../../src/components/Icons';
 import { Sparkle } from '../../src/components/Sparkle';
 import { useApp } from '../../src/store';
-import { FONTS, MOOD_PALETTES } from '../../src/theme';
+import { FONTS } from '../../src/theme';
 import { MOODS, Meditation } from '../../src/data';
 
 export default function LibraryScreen() {
@@ -20,15 +20,11 @@ export default function LibraryScreen() {
 
   const Item = ({ m }: { m: Meditation }) => {
     const mood = MOODS.find((x) => x.id === m.config.mood);
-    const mp = MOOD_PALETTES[m.config.mood]?.[palette.name] ?? MOOD_PALETTES.calm[palette.name];
     return (
       <GlassCard onPress={() => router.push({ pathname: '/player', params: { id: m.id } })} style={{ marginBottom: 14 }}>
         <View style={styles.itemRow}>
-          <View style={styles.orb}>
-            <MoodOrb size={46} color={mp.figure[1]} core={mp.figure[2]} />
-            <View style={{ position: 'absolute' }}>
-              <Play color="rgba(255,255,255,0.95)" size={15} />
-            </View>
+          <View style={[styles.orb, { borderColor: palette.line }]}>
+            <MoodIcon mood={m.config.mood} size={22} color={palette.text} strokeWidth={1.4} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.itemTitle, { color: palette.text }]} numberOfLines={1}>
@@ -42,13 +38,13 @@ export default function LibraryScreen() {
               })}
             </Text>
           </View>
-          <Pressable onPress={() => toggleDownload(m.id)} hitSlop={10}>
+          <Tap onPress={() => toggleDownload(m.id)} hitSlop={10} scaleTo={0.85}>
             {m.downloaded ? (
               <Check color={palette.accent} size={20} />
             ) : (
               <Download color={palette.textFaint} size={20} />
             )}
-          </Pressable>
+          </Tap>
         </View>
       </GlassCard>
     );
@@ -58,9 +54,12 @@ export default function LibraryScreen() {
     <GradientBackground>
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          <View style={{ alignItems: 'center', marginTop: 16, marginBottom: 22 }}>
+          <View style={styles.topRow}>
+            <View style={{ width: 98 }} />
             <MicroLabel>{t('tab_library').toLowerCase()}</MicroLabel>
-            <View style={{ height: 10 }} />
+            <HeaderActions />
+          </View>
+          <View style={{ alignItems: 'center', marginBottom: 22 }}>
             <Title>{t('lib_title')}</Title>
             <View style={{ height: 6 }} />
             <Body faint>{t('lib_sub')}</Body>
@@ -109,6 +108,7 @@ export default function LibraryScreen() {
 
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 24, paddingBottom: 130 },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, marginBottom: 18 },
   tabs: {
     flexDirection: 'row',
     borderRadius: 26,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
   tabBtn: { flex: 1, alignItems: 'center', paddingVertical: 10 },
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  orb: { width: 46, height: 46, alignItems: 'center', justifyContent: 'center' },
+  orb: { width: 46, height: 46, borderRadius: 23, borderWidth: 0.8, alignItems: 'center', justifyContent: 'center' },
   itemTitle: { fontFamily: FONTS.sansMedium, fontSize: 15.5 },
   hint: { fontFamily: FONTS.sans, fontSize: 12.5, lineHeight: 19, textAlign: 'center', marginTop: 18, paddingHorizontal: 16 },
 });

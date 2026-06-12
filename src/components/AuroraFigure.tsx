@@ -5,8 +5,12 @@ import Svg, {
   Ellipse,
   FeGaussianBlur,
   Filter,
+  G,
+  LinearGradient,
+  Mask,
   Path,
   RadialGradient,
+  Rect,
   Stop,
 } from 'react-native-svg';
 
@@ -97,31 +101,42 @@ export function AuroraFigure({
             <Stop offset="0%" stopColor={core} stopOpacity="0.95" />
             <Stop offset="100%" stopColor={core} stopOpacity="0" />
           </RadialGradient>
+          {/* the figure dissolves into light toward the bottom instead of being cut */}
+          <LinearGradient id="fadeY" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor="#fff" stopOpacity="1" />
+            <Stop offset="0.68" stopColor="#fff" stopOpacity="1" />
+            <Stop offset="1" stopColor="#fff" stopOpacity="0" />
+          </LinearGradient>
+          <Mask id="fadeMask">
+            <Rect x="0" y="0" width="300" height="340" fill="url(#fadeY)" />
+          </Mask>
         </Defs>
 
-        {/* halo */}
-        <Ellipse cx="150" cy="200" rx="120" ry="150" fill="url(#bodyGrad)" opacity="0.35" filter="url(#softer)" />
-        {/* body */}
-        <Path d={shapes.body} fill="url(#bodyGrad)" filter="url(#soft)" />
-        {/* head */}
-        <Ellipse
-          cx={shapes.head.cx}
-          cy={shapes.head.cy}
-          rx={shapes.head.rx}
-          ry={shapes.head.ry}
-          fill="url(#bodyGrad)"
-          filter="url(#soft)"
-          transform={`rotate(${shapes.head.rot} ${shapes.head.cx} ${shapes.head.cy})`}
-        />
-        {/* glowing core */}
-        <Ellipse
-          cx={shapes.core.cx}
-          cy={shapes.core.cy}
-          rx={shapes.core.rx}
-          ry={shapes.core.ry}
-          fill="url(#coreGrad)"
-          filter="url(#softer)"
-        />
+        <G mask="url(#fadeMask)">
+          {/* halo */}
+          <Ellipse cx="150" cy="190" rx="125" ry="150" fill="url(#bodyGrad)" opacity="0.35" filter="url(#softer)" />
+          {/* body */}
+          <Path d={shapes.body} fill="url(#bodyGrad)" filter="url(#soft)" />
+          {/* head */}
+          <Ellipse
+            cx={shapes.head.cx}
+            cy={shapes.head.cy}
+            rx={shapes.head.rx}
+            ry={shapes.head.ry}
+            fill="url(#bodyGrad)"
+            filter="url(#soft)"
+            transform={`rotate(${shapes.head.rot} ${shapes.head.cx} ${shapes.head.cy})`}
+          />
+          {/* glowing core */}
+          <Ellipse
+            cx={shapes.core.cx}
+            cy={shapes.core.cy}
+            rx={shapes.core.rx}
+            ry={shapes.core.ry}
+            fill="url(#coreGrad)"
+            filter="url(#softer)"
+          />
+        </G>
       </Svg>
     </Animated.View>
   );

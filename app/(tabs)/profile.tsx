@@ -4,8 +4,8 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { GradientBackground } from '../../src/components/GradientBackground';
-import { GlassCard, GlassIconButton, MicroLabel, PrimaryButton } from '../../src/components/UI';
-import { Camera, Gear, Logout, Pencil } from '../../src/components/Icons';
+import { GlassCard, HeaderActions, MicroLabel, PrimaryButton, Tap } from '../../src/components/UI';
+import { Camera, Logout, Pencil } from '../../src/components/Icons';
 import { PathTrail } from '../../src/components/PathTrail';
 import { useApp } from '../../src/store';
 import { FONTS, RADII } from '../../src/theme';
@@ -51,11 +51,9 @@ export default function ProfileScreen() {
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <View style={{ width: 44 }} />
+            <View style={{ width: 98 }} />
             <MicroLabel>{t('tab_profile').toLowerCase()}</MicroLabel>
-            <GlassIconButton onPress={() => router.push('/settings')}>
-              <Gear color={palette.text} size={20} />
-            </GlassIconButton>
+            <HeaderActions />
           </View>
 
           <View style={{ alignItems: 'center', marginTop: 24 }}>

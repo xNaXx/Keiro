@@ -1,9 +1,10 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Library, UserIcon } from '../../src/components/Icons';
+import { Tap } from '../../src/components/UI';
 import { useApp } from '../../src/store';
 import { FONTS } from '../../src/theme';
 
@@ -27,11 +28,12 @@ function GlassTabBar({ state, navigation }: any) {
           const focused = state.index === idx;
           const Icon = item.icon;
           return (
-            <Pressable
+            <Tap
               key={item.name}
               onPress={() => navigation.navigate(item.name)}
               style={styles.item}
               hitSlop={6}
+              scaleTo={0.9}
             >
               <Icon color={focused ? palette.text : palette.textFaint} size={21} strokeWidth={focused ? 1.9 : 1.5} />
               <Text
@@ -43,7 +45,7 @@ function GlassTabBar({ state, navigation }: any) {
               >
                 {item.label}
               </Text>
-            </Pressable>
+            </Tap>
           );
         })}
       </BlurView>

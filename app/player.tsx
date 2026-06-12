@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Animated, GestureResponderEvent, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
@@ -7,12 +7,13 @@ import { GradientBackground } from '../src/components/GradientBackground';
 import { AuroraFigure } from '../src/components/AuroraFigure';
 import { RingFlower } from '../src/components/RingFlower';
 import { Sparkle } from '../src/components/Sparkle';
-import { BackButton, MicroLabel, PrimaryButton } from '../src/components/UI';
+import { BackButton, MicroLabel, PrimaryButton, Tap, ThemeToggle } from '../src/components/UI';
 import { Check, Download, Pause, Play, SkipBack, SkipFwd } from '../src/components/Icons';
 import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES, RADII } from '../src/theme';
-import { MOODS } from '../src/data';
+import { MOODS, VOICES } from '../src/data';
 import { hasElevenLabsKey } from '../src/services/elevenlabs';
+import { speakLine, startAmbient, stopAmbient, stopSpeech } from '../src/services/demoAudio';
 
 function fmt(sec: number) {
   const m = Math.floor(sec / 60);
@@ -32,10 +33,10 @@ export default function PlayerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, palette, sessions, toggleDownload, language } = useApp();
   const router = useRouter();
-  const { width } = useWindowDimensions();
 
   const meditation = sessions.find((s) => s.id === id);
   const mood = MOODS.find((m) => m.id === meditation?.config.mood);
+  const voice = VOICES.find((v) => v.id === meditation?.config.voiceId) ?? VOICES[0];
   const mp = MOOD_PALETTES[meditation?.config.mood ?? 'calm']?.[palette.name] ?? MOOD_PALETTES.calm[palette.name];
 
   const [elapsed, setElapsed] = useState(0);
@@ -43,6 +44,7 @@ export default function PlayerScreen() {
   const [speed, setSpeed] = useState(1);
   const [done, setDone] = useState(false);
   const lineFade = useRef(new Animated.Value(0)).current;
+  const waveWidth = useRef(1);
 
   const demo = !hasElevenLabsKey() && !meditation?.audioUri;
   const durationSec = meditation?.durationSec ?? 300;
@@ -63,6 +65,19 @@ export default function PlayerScreen() {
     return () => clearInterval(iv);
   }, [playing, speed, durationSec, done]);
 
+  // demo soundscape: ambient pad while playing, browser voice per line
+  useEffect(() => {
+    if (demo && playing && !done) startAmbient();
+    else {
+      stopAmbient();
+      stopSpeech();
+    }
+    return () => {
+      stopAmbient();
+      stopSpeech();
+    };
+  }, [demo, playing, done]);
+
   const currentLine = useMemo(() => {
     if (!meditation) return null;
     const passed = meditation.lines.filter((l) => l.at <= elapsed);
@@ -72,7 +87,11 @@ export default function PlayerScreen() {
   useEffect(() => {
     lineFade.setValue(0);
     Animated.timing(lineFade, { toValue: 1, duration: 900, useNativeDriver: true }).start();
-  }, [currentLine?.at, lineFade]);
+    if (demo && playing && currentLine && !done) {
+      speakLine(currentLine.text, language, voice.gender);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLine?.at]);
 
   const heights = useMemo(() => seededHeights(42), []);
 
@@ -89,8 +108,39 @@ export default function PlayerScreen() {
   const progress = elapsed / durationSec;
   const skip = (d: number) => setElapsed((e) => Math.min(Math.max(0, e + d), durationSec));
 
+  const seekFromEvent = (e: GestureResponderEvent) => {
+    const x = e.nativeEvent.locationX;
+    const p = Math.min(1, Math.max(0, x / waveWidth.current));
+    stopSpeech();
+    setElapsed(Math.round(p * durationSec));
+    if (done && p < 1) setDone(false);
+  };
+
+  const downloadFile = async () => {
+    toggleDownload(meditation.id);
+    if (Platform.OS !== 'web' || meditation.downloaded) return;
+    try {
+      let blob: Blob;
+      let name: string;
+      if (meditation.audioUri) {
+        blob = await (await fetch(meditation.audioUri)).blob();
+        name = `${meditation.title}.mp3`;
+      } else {
+        const text = `Keiro — ${meditation.title}\n\n${meditation.lines.map((l) => l.text).join('\n\n')}`;
+        blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        name = `${meditation.title}.txt`;
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch {}
+  };
+
   const ControlTile = ({ children, onPress, wide }: { children: React.ReactNode; onPress: () => void; wide?: boolean }) => (
-    <Pressable onPress={onPress} style={({ pressed }) => [{ flex: wide ? 1.4 : 1, opacity: pressed ? 0.8 : 1 }]}>
+    <Tap onPress={onPress} style={{ flex: wide ? 1.4 : 1 }} scaleTo={0.93}>
       <BlurView
         intensity={26}
         tint={palette.name === 'dark' ? 'dark' : 'light'}
@@ -98,7 +148,7 @@ export default function PlayerScreen() {
       >
         {children}
       </BlurView>
-    </Pressable>
+    </Tap>
   );
 
   if (done) {
@@ -113,16 +163,18 @@ export default function PlayerScreen() {
             <Text style={{ fontFamily: FONTS.sans, fontSize: 15, color: palette.textSoft, textAlign: 'center' }}>
               {t('player_done_body')}
             </Text>
-            <Pressable onPress={() => toggleDownload(meditation.id)} style={styles.downloadRow} hitSlop={8}>
-              {meditation.downloaded ? (
-                <Check color={palette.accent} size={18} />
-              ) : (
-                <Download color={palette.textSoft} size={18} />
-              )}
-              <Text style={{ fontFamily: FONTS.sans, fontSize: 14, color: palette.textSoft }}>
-                {meditation.downloaded ? t('player_downloaded') : t('player_download')}
-              </Text>
-            </Pressable>
+            <Tap onPress={downloadFile} style={styles.downloadRow} hitSlop={8}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {meditation.downloaded ? (
+                  <Check color={palette.accent} size={18} />
+                ) : (
+                  <Download color={palette.textSoft} size={18} />
+                )}
+                <Text style={{ fontFamily: FONTS.sans, fontSize: 14, color: palette.textSoft }}>
+                  {meditation.downloaded ? t('player_downloaded') : t('player_download')}
+                </Text>
+              </View>
+            </Tap>
           </View>
           <View style={{ paddingHorizontal: 28, paddingBottom: 30 }}>
             <PrimaryButton label={t('player_finish')} onPress={() => router.dismissTo('/(tabs)')} />
@@ -138,23 +190,31 @@ export default function PlayerScreen() {
         <View style={styles.header}>
           <BackButton />
           <Sparkle size={18} color={palette.text} twinkle />
-          <Pressable onPress={() => toggleDownload(meditation.id)} hitSlop={10}>
-            <BlurView
-              intensity={24}
-              tint={palette.name === 'dark' ? 'dark' : 'light'}
-              style={[styles.iconBtn, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
-            >
-              {meditation.downloaded ? (
-                <Check color={palette.accent} size={19} />
-              ) : (
-                <Download color={palette.text} size={19} />
-              )}
-            </BlurView>
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <ThemeToggle />
+            <Tap onPress={downloadFile} hitSlop={6} scaleTo={0.88}>
+              <BlurView
+                intensity={24}
+                tint={palette.name === 'dark' ? 'dark' : 'light'}
+                style={[styles.iconBtn, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
+              >
+                {meditation.downloaded ? (
+                  <Check color={palette.accent} size={19} />
+                ) : (
+                  <Download color={palette.text} size={19} />
+                )}
+              </BlurView>
+            </Tap>
+          </View>
         </View>
 
         <View style={styles.figureZone}>
-          <AuroraFigure pose={meditation.config.mood === 'sadness' ? 'bowed' : 'gazing'} colors={mp.figure} width={300} height={300} />
+          <AuroraFigure
+            pose={meditation.config.mood === 'sadness' ? 'bowed' : 'gazing'}
+            colors={mp.figure}
+            width={360}
+            height={380}
+          />
         </View>
 
         <BlurView
@@ -187,22 +247,31 @@ export default function PlayerScreen() {
 
           <View style={styles.waveRow}>
             <Text style={[styles.time, { color: palette.textSoft }]}>{fmt(elapsed)}</Text>
-            <View style={styles.wave}>
-              {heights.map((h, i) => {
-                const lit = i / heights.length <= progress;
-                return (
-                  <View
-                    key={i}
-                    style={{
-                      width: 2,
-                      height: h,
-                      borderRadius: 1,
-                      backgroundColor: lit ? palette.line : palette.textFaint,
-                      opacity: lit ? 0.95 : 0.45,
-                    }}
-                  />
-                );
-              })}
+            <View
+              style={styles.waveTouch}
+              onLayout={(e) => (waveWidth.current = e.nativeEvent.layout.width)}
+              onStartShouldSetResponder={() => true}
+              onMoveShouldSetResponder={() => true}
+              onResponderGrant={seekFromEvent}
+              onResponderMove={seekFromEvent}
+            >
+              <View style={styles.wave} pointerEvents="none">
+                {heights.map((h, i) => {
+                  const lit = i / heights.length <= progress;
+                  return (
+                    <View
+                      key={i}
+                      style={{
+                        width: 2,
+                        height: h,
+                        borderRadius: 1,
+                        backgroundColor: lit ? palette.line : palette.textFaint,
+                        opacity: lit ? 0.95 : 0.45,
+                      }}
+                    />
+                  );
+                })}
+              </View>
             </View>
             <Text style={[styles.time, { color: palette.textSoft }]}>{fmt(durationSec)}</Text>
           </View>
@@ -212,19 +281,19 @@ export default function PlayerScreen() {
               {playing ? <Pause color={palette.text} size={24} /> : <Play color={palette.text} size={24} />}
             </ControlTile>
             <ControlTile onPress={() => skip(-15)}>
-              <SkipBack color={palette.text} size={22} />
+              <SkipBack color={palette.text} size={24} />
             </ControlTile>
             <ControlTile onPress={() => skip(15)}>
-              <SkipFwd color={palette.text} size={22} />
+              <SkipFwd color={palette.text} size={24} />
             </ControlTile>
           </View>
 
           {demo && (
-            <Pressable onPress={() => setSpeed(speed === 1 ? 8 : 1)} style={{ alignItems: 'center', marginTop: 12 }} hitSlop={8}>
+            <Tap onPress={() => setSpeed(speed === 1 ? 8 : 1)} style={{ alignItems: 'center', marginTop: 12 }} hitSlop={8}>
               <Text style={{ fontFamily: FONTS.sans, fontSize: 11.5, color: palette.textFaint, letterSpacing: 1 }}>
-                {t('demo_badge')} · x{speed}
+                {t('demo_badge')} · x{speed} · {t('demo_voice')}
               </Text>
-            </Pressable>
+            </Tap>
           )}
         </BlurView>
       </SafeAreaView>
@@ -250,7 +319,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
   },
-  figureZone: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: -20 },
+  figureZone: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', marginTop: -30 },
   sheet: {
     borderTopLeftRadius: RADII.card + 6,
     borderTopRightRadius: RADII.card + 6,
@@ -259,14 +328,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 14,
     paddingBottom: 28,
-    marginTop: -40,
+    marginTop: -56,
   },
   handle: { width: 36, height: 3, borderRadius: 2, alignSelf: 'center', opacity: 0.5, marginBottom: 12 },
   sheetTitle: { fontFamily: FONTS.sans, fontSize: 19, textAlign: 'center', marginTop: 8 },
   moodWord: { fontFamily: FONTS.serif, fontSize: 30, letterSpacing: 0.5 },
   line: { fontFamily: FONTS.serifItalic, fontSize: 16, lineHeight: 23, textAlign: 'center', marginTop: 6, minHeight: 46 },
   waveRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 10 },
-  wave: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 26 },
+  waveTouch: { flex: 1, paddingVertical: 8, justifyContent: 'center', cursor: 'pointer' } as any,
+  wave: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 26 },
   time: { fontFamily: FONTS.sans, fontSize: 12 },
   controls: { flexDirection: 'row', gap: 10, marginTop: 16 },
   tile: {
@@ -279,5 +349,5 @@ const styles = StyleSheet.create({
   },
   doneCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: 36 },
   doneTitle: { fontFamily: FONTS.serif, fontSize: 36 },
-  downloadRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16 },
+  downloadRow: { marginTop: 16 },
 });

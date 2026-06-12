@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { GradientBackground } from '../../src/components/GradientBackground';
+import { MoodIcon } from '../../src/components/MoodIcon';
 import { MoodOrb } from '../../src/components/MoodOrb';
-import { BackButton, GlassIconButton, MicroLabel, PrimaryButton, Title } from '../../src/components/UI';
+import { BackButton, GlassIconButton, MicroLabel, PrimaryButton, Tap, Title } from '../../src/components/UI';
 import { PathTrail } from '../../src/components/PathTrail';
 import { ArrowLeft, Moon, SpeakerWave, Sun, Sunrise, Sunset } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
-import { FONTS, MOOD_PALETTES, RADII } from '../../src/theme';
+import { FONTS, RADII } from '../../src/theme';
 import { DURATIONS, ENERGIES, EnergyId, MOMENTS, MOODS, MomentId, VOICES, currentMoment } from '../../src/data';
+import { speakSample } from '../../src/services/demoAudio';
 
 const STEPS = ['mood', 'moment', 'duration', 'voice', 'energy'] as const;
 
@@ -48,7 +50,7 @@ export default function AdvancedScreen() {
     children: React.ReactNode;
     grow?: boolean;
   }) => (
-    <Pressable onPress={onPress} style={({ pressed }) => [grow && { flexGrow: 1 }, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}>
+    <Tap onPress={onPress} style={grow ? { flexGrow: 1 } : undefined} scaleTo={0.95}>
       <BlurView
         intensity={24}
         tint={dark ? 'dark' : 'light'}
@@ -63,7 +65,7 @@ export default function AdvancedScreen() {
       >
         {children}
       </BlurView>
-    </Pressable>
+    </Tap>
   );
 
   const momentIcons = { sunrise: Sunrise, sun: Sun, sunset: Sunset, moon: Moon };
@@ -94,15 +96,12 @@ export default function AdvancedScreen() {
 
           {step === 0 && (
             <View style={styles.wrapRow}>
-              {MOODS.map((m) => {
-                const mp = MOOD_PALETTES[m.id][palette.name];
-                return (
-                  <Chip key={m.id} selected={mood === m.id} onPress={() => setMood(m.id)}>
-                    <View style={[styles.dot, { backgroundColor: mp.figure[1] }]} />
-                    <Text style={[styles.chipText, { color: palette.text }]}>{m.label[language]}</Text>
-                  </Chip>
-                );
-              })}
+              {MOODS.map((m) => (
+                <Chip key={m.id} selected={mood === m.id} onPress={() => setMood(m.id)}>
+                  <MoodIcon mood={m.id} size={20} color={palette.text} strokeWidth={1.4} />
+                  <Text style={[styles.chipText, { color: palette.text }]}>{m.label[language]}</Text>
+                </Chip>
+              ))}
             </View>
           )}
 
@@ -134,7 +133,7 @@ export default function AdvancedScreen() {
           {step === 3 && (
             <View style={{ gap: 14 }}>
               {VOICES.map((v) => (
-                <Pressable key={v.id} onPress={() => setVoice(v.id)} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+                <Tap key={v.id} onPress={() => setVoice(v.id)} scaleTo={0.97}>
                   <BlurView
                     intensity={24}
                     tint={dark ? 'dark' : 'light'}
@@ -156,14 +155,23 @@ export default function AdvancedScreen() {
                         {v.desc[language]} · {v.gender === 'female' ? (language === 'es' ? 'femenina' : 'female') : language === 'es' ? 'masculina' : 'male'}
                       </Text>
                     </View>
-                    <View style={{ alignItems: 'center', gap: 4 }}>
-                      <SpeakerWave color={palette.textFaint} size={18} />
-                      <Text style={{ fontFamily: FONTS.sans, fontSize: 10.5, color: palette.textFaint }}>
-                        {t('preview_voice')}
-                      </Text>
-                    </View>
+                    <Tap
+                      onPress={() => {
+                        setVoice(v.id);
+                        speakSample(language, v.gender);
+                      }}
+                      hitSlop={10}
+                      scaleTo={0.85}
+                    >
+                      <View style={{ alignItems: 'center', gap: 4 }}>
+                        <SpeakerWave color={palette.textFaint} size={18} />
+                        <Text style={{ fontFamily: FONTS.sans, fontSize: 10.5, color: palette.textFaint }}>
+                          {t('preview_voice')}
+                        </Text>
+                      </View>
+                    </Tap>
                   </BlurView>
-                </Pressable>
+                </Tap>
               ))}
             </View>
           )}

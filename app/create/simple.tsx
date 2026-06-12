@@ -1,13 +1,13 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { GradientBackground } from '../../src/components/GradientBackground';
-import { MoodOrb } from '../../src/components/MoodOrb';
-import { BackButton, MicroLabel, Title } from '../../src/components/UI';
+import { MoodIcon } from '../../src/components/MoodIcon';
+import { BackButton, MicroLabel, Tap, Title } from '../../src/components/UI';
 import { useApp } from '../../src/store';
-import { FONTS, MOOD_PALETTES, RADII } from '../../src/theme';
+import { FONTS, RADII } from '../../src/theme';
 import { MOODS } from '../../src/data';
 
 export default function SimpleScreen() {
@@ -32,25 +32,20 @@ export default function SimpleScreen() {
           <Title>{t('simple_title')}</Title>
 
           <View style={styles.grid}>
-            {MOODS.map((m) => {
-              const mp = MOOD_PALETTES[m.id][palette.name];
-              return (
-                <Pressable
-                  key={m.id}
-                  onPress={() => choose(m.id)}
-                  style={({ pressed }) => [styles.cell, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}
+            {MOODS.map((m) => (
+              <Tap key={m.id} onPress={() => choose(m.id)} style={styles.cell} scaleTo={0.95}>
+                <BlurView
+                  intensity={24}
+                  tint={dark ? 'dark' : 'light'}
+                  style={[styles.cellInner, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
                 >
-                  <BlurView
-                    intensity={24}
-                    tint={dark ? 'dark' : 'light'}
-                    style={[styles.cellInner, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
-                  >
-                    <MoodOrb size={68} color={mp.figure[1]} core={mp.figure[2]} ring={palette.line} />
-                    <Text style={[styles.moodName, { color: palette.text }]}>{m.label[language]}</Text>
-                  </BlurView>
-                </Pressable>
-              );
-            })}
+                  <View style={[styles.iconRing, { borderColor: palette.line }]}>
+                    <MoodIcon mood={m.id} size={30} color={palette.text} strokeWidth={1.3} />
+                  </View>
+                  <Text style={[styles.moodName, { color: palette.text }]}>{m.label[language]}</Text>
+                </BlurView>
+              </Tap>
+            ))}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -83,6 +78,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 26,
     gap: 14,
+  },
+  iconRing: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    borderWidth: 0.8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   moodName: { fontFamily: FONTS.sansMedium, fontSize: 15 },
 });

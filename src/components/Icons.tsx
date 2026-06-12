@@ -52,18 +52,18 @@ export const Pause = ({ size = 22, color = '#fff' }: P) => (
   </Svg>
 );
 
-export const SkipBack = ({ size = 22, color = '#fff' }: P) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24">
-    <Path d="M17 5.8 C17 5 16.1 4.5 15.4 4.9 L7.5 11.1 C6.9 11.6 6.9 12.4 7.5 12.9 L15.4 19.1 C16.1 19.5 17 19 17 18.2 Z" fill={color} />
-    <Rect x="5" y="5" width="2" height="14" rx="1" fill={color} />
-  </Svg>
+export const SkipBack = (p: P) => (
+  <D {...p} strokeWidth={1.8}>
+    <Path d="M12.5 7 L7.5 12 L12.5 17" />
+    <Path d="M17.5 7 L12.5 12 L17.5 17" />
+  </D>
 );
 
-export const SkipFwd = ({ size = 22, color = '#fff' }: P) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24">
-    <Path d="M7 5.8 C7 5 7.9 4.5 8.6 4.9 L16.5 11.1 C17.1 11.6 17.1 12.4 16.5 12.9 L8.6 19.1 C7.9 19.5 7 19 7 18.2 Z" fill={color} />
-    <Rect x="17" y="5" width="2" height="14" rx="1" fill={color} />
-  </Svg>
+export const SkipFwd = (p: P) => (
+  <D {...p} strokeWidth={1.8}>
+    <Path d="M6.5 7 L11.5 12 L6.5 17" />
+    <Path d="M11.5 7 L16.5 12 L11.5 17" />
+  </D>
 );
 
 export const Download = (p: P) => (
@@ -128,8 +128,8 @@ export const UserIcon = (p: P) => (
 
 export const Gear = (p: P) => (
   <D {...p}>
-    <Circle cx="12" cy="12" r="3" />
-    <Path d="M12 4 L12 6 M12 18 L12 20 M4 12 L6 12 M18 12 L20 12 M6.3 6.3 L7.8 7.8 M16.2 16.2 L17.7 17.7 M17.7 6.3 L16.2 7.8 M7.8 16.2 L6.3 17.7" />
+    <Circle cx="12" cy="12" r="3.1" />
+    <Path d="M19.4 13.7 C19.5 13.1 19.5 12.6 19.5 12 C19.5 11.4 19.5 10.9 19.4 10.3 L21.2 8.9 L19.4 5.8 L17.2 6.6 C16.4 5.9 15.4 5.3 14.4 5 L14 2.8 L10 2.8 L9.6 5 C8.6 5.3 7.6 5.9 6.8 6.6 L4.6 5.8 L2.8 8.9 L4.6 10.3 C4.5 10.9 4.5 11.4 4.5 12 C4.5 12.6 4.5 13.1 4.6 13.7 L2.8 15.1 L4.6 18.2 L6.8 17.4 C7.6 18.1 8.6 18.7 9.6 19 L10 21.2 L14 21.2 L14.4 19 C15.4 18.7 16.4 18.1 17.2 17.4 L19.4 18.2 L21.2 15.1 Z" />
   </D>
 );
 

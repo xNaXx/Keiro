@@ -1,12 +1,12 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '../../src/components/GradientBackground';
-import { GlassCard, GlassIconButton, MicroLabel } from '../../src/components/UI';
+import { GlassCard, HeaderActions, MicroLabel, Tap } from '../../src/components/UI';
 import { PathTrail } from '../../src/components/PathTrail';
 import { Sparkle } from '../../src/components/Sparkle';
-import { Gear, Play, Plus } from '../../src/components/Icons';
+import { Play, Plus } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
 import { FONTS } from '../../src/theme';
 import { MOODS, currentMoment } from '../../src/data';
@@ -28,34 +28,30 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.fill}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <View style={{ width: 44 }} />
+            <View style={{ width: 98 }} />
             <View style={{ alignItems: 'center' }}>
               <Text style={[styles.hello, { color: palette.text }]}>
                 {t('hello')} {user?.name?.split(' ')[0] ?? ''},
               </Text>
               <Text style={[styles.day, { color: palette.textFaint }]}>{t('day_of_path', { n: pathDay })}</Text>
             </View>
-            <GlassIconButton onPress={() => router.push('/settings')}>
-              <Gear color={palette.text} size={20} />
-            </GlassIconButton>
+            <HeaderActions />
           </View>
 
           <View style={styles.center}>
             <Sparkle size={16} color={palette.textSoft} twinkle />
             <Text style={[styles.question, { color: palette.text }]}>{t(questionKey)}</Text>
 
-            <Pressable
-              onPress={() => router.push('/create/mode')}
-              style={({ pressed }) => [
-                styles.plus,
-                {
-                  backgroundColor: dark ? 'rgba(240,244,255,0.92)' : 'rgba(58,53,80,0.85)',
-                  transform: [{ scale: pressed ? 0.94 : 1 }],
-                },
-              ]}
-            >
-              <Plus color={dark ? '#10142e' : '#fff'} size={26} strokeWidth={2} />
-            </Pressable>
+            <Tap onPress={() => router.push('/create/mode')} scaleTo={0.9}>
+              <View
+                style={[
+                  styles.plus,
+                  { backgroundColor: dark ? 'rgba(240,244,255,0.92)' : 'rgba(58,53,80,0.85)' },
+                ]}
+              >
+                <Plus color={dark ? '#10142e' : '#fff'} size={26} strokeWidth={2} />
+              </View>
+            </Tap>
 
             <View style={{ marginTop: 34, alignItems: 'center', gap: 8 }}>
               <PathTrail
