@@ -6,7 +6,7 @@ import { BlurView } from 'expo-blur';
 import { GradientBackground } from '../../src/components/GradientBackground';
 import { MoodIcon } from '../../src/components/MoodIcon';
 import { Brand } from '../../src/components/KeiroLogo';
-import { BackButton, HeaderActions, MicroLabel, Tap, Title } from '../../src/components/UI';
+import { BackButton, CreateHeaderActions, MicroLabel, Tap, Title } from '../../src/components/UI';
 import { useApp } from '../../src/store';
 import { FONTS, RADII } from '../../src/theme';
 import { MOODS } from '../../src/data';
@@ -26,7 +26,7 @@ export default function SimpleScreen() {
         <View style={styles.header}>
           <BackButton />
           <Brand color={palette.text} />
-          <HeaderActions />
+          <CreateHeaderActions />
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>

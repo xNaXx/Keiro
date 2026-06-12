@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { GradientBackground } from '../../src/components/GradientBackground';
 import { MoodIcon } from '../../src/components/MoodIcon';
 import { MoodOrb } from '../../src/components/MoodOrb';
-import { BackButton, GlassIconButton, HeaderActions, MicroLabel, PrimaryButton, Tap, Title } from '../../src/components/UI';
+import { BackButton, GlassIconButton, CreateHeaderActions, MicroLabel, PrimaryButton, Tap, Title } from '../../src/components/UI';
 import { PathTrail } from '../../src/components/PathTrail';
-import { ArrowLeft, Moon, SpeakerWave, Sun, Sunrise, Sunset } from '../../src/components/Icons';
+import { ArrowLeft, Lock, Moon, SpeakerWave, Sun, Sunrise, Sunset } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
 import { FONTS, RADII } from '../../src/theme';
 import { DURATIONS, ENERGIES, EnergyId, HZ_OPTIONS, MOMENTS, MOODS, MomentId, SoundType, VOICES, VoiceDensity, currentMoment } from '../../src/data';
@@ -32,19 +32,32 @@ function Chip({
   palette: any;
   dark: boolean;
 }) {
+  const sel = React.useRef(new Animated.Value(selected ? 1 : 0)).current;
+  React.useEffect(() => {
+    Animated.timing(sel, { toValue: selected ? 1 : 0, duration: 380, useNativeDriver: true }).start();
+  }, [selected, sel]);
+
   return (
-    <Tap onPress={onPress} style={grow ? { flexGrow: 1 } : undefined} scaleTo={0.95}>
+    <Tap onPress={onPress} style={grow ? { flexGrow: 1 } : undefined} scaleTo={0.97}>
       <BlurView
         intensity={24}
         tint={dark ? 'dark' : 'light'}
-        style={[
-          styles.chip,
-          {
-            backgroundColor: selected ? palette.selectedBg : palette.glass,
-            borderColor: selected ? palette.selectedBorder : palette.glassBorder,
-          },
-        ]}
+        style={[styles.chip, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
       >
+        {/* the selection breathes in and out instead of snapping */}
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              opacity: sel,
+              backgroundColor: palette.selectedBg,
+              borderRadius: RADII.button,
+              borderWidth: 1.4,
+              borderColor: palette.selectedBorder,
+            },
+          ]}
+        />
         {children}
       </BlurView>
     </Tap>
@@ -106,7 +119,7 @@ export default function AdvancedScreen() {
               {t('adv_step', { a: step + 1, b: STEPS.length })}
             </Text>
           </View>
-          <HeaderActions />
+          <CreateHeaderActions />
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -151,8 +164,10 @@ export default function AdvancedScreen() {
 
           {step === 3 && (
             <View style={{ gap: 14 }}>
-              {VOICES.map((v) => (
-                <Tap key={v.id} onPress={() => setVoice(v.id)} scaleTo={0.97}>
+              {VOICES.map((v) => {
+                const locked = !!v.premium && plan === 'free';
+                return (
+                <Tap key={v.id} onPress={() => (locked ? router.push('/paywall') : setVoice(v.id))} scaleTo={0.97}>
                   <BlurView
                     intensity={24}
                     tint={dark ? 'dark' : 'light'}
@@ -161,6 +176,7 @@ export default function AdvancedScreen() {
                       {
                         backgroundColor: voice === v.id ? palette.selectedBg : palette.glass,
                         borderColor: voice === v.id ? palette.selectedBorder : palette.glassBorder,
+                        opacity: locked ? 0.62 : 1,
                       },
                     ]}
                   >
@@ -173,24 +189,34 @@ export default function AdvancedScreen() {
                         {v.desc[language]} · {v.gender === 'female' ? (language === 'es' ? 'femenina' : 'female') : language === 'es' ? 'masculina' : 'male'}
                       </Text>
                     </View>
-                    <Tap
-                      onPress={() => {
-                        setVoice(v.id);
-                        speakSample(language, v.gender);
-                      }}
-                      hitSlop={10}
-                      scaleTo={0.85}
-                    >
-                      <View style={{ alignItems: 'center', gap: 4 }}>
-                        <SpeakerWave color={palette.textFaint} size={18} />
+                    {locked ? (
+                      <View style={{ alignItems: 'center', gap: 4, opacity: 0.8 }}>
+                        <Lock color={palette.textFaint} size={18} />
                         <Text style={{ fontFamily: FONTS.sans, fontSize: 10.5, color: palette.textFaint }}>
-                          {t('preview_voice')}
+                          {t('pw_label')}
                         </Text>
                       </View>
-                    </Tap>
+                    ) : (
+                      <Tap
+                        onPress={() => {
+                          setVoice(v.id);
+                          speakSample(language, v.gender);
+                        }}
+                        hitSlop={10}
+                        scaleTo={0.85}
+                      >
+                        <View style={{ alignItems: 'center', gap: 4 }}>
+                          <SpeakerWave color={palette.textFaint} size={18} />
+                          <Text style={{ fontFamily: FONTS.sans, fontSize: 10.5, color: palette.textFaint }}>
+                            {t('preview_voice')}
+                          </Text>
+                        </View>
+                      </Tap>
+                    )}
                   </BlurView>
                 </Tap>
-              ))}
+                );
+              })}
             </View>
           )}
 

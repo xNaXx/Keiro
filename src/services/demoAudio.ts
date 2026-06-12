@@ -27,6 +27,25 @@ if (isWeb && 'speechSynthesis' in window) {
 const LEVEL_FULL = 0.04;
 const LEVEL_DUCKED = 0.012;
 
+let musicVol = 1;
+let voiceVol = 1;
+let currentLevel: 'full' | 'ducked' = 'full';
+
+/** 0..1 — scales the pad in real time. */
+export function setMusicVolume(v: number) {
+  musicVol = Math.max(0, Math.min(1, v));
+  rampAmbient(currentLevel === 'full' ? LEVEL_FULL : LEVEL_DUCKED, 0.15);
+}
+
+/** 0..1 — applies to the next spoken line. */
+export function setVoiceVolume(v: number) {
+  voiceVol = Math.max(0, Math.min(1, v));
+}
+
+export function getVolumes() {
+  return { music: musicVol, voice: voiceVol };
+}
+
 let ctx: AudioContext | null = null;
 let ambient: { nodes: AudioNode[]; gain: GainNode } | null = null;
 
@@ -60,18 +79,22 @@ function buildPad(ac: BaseAudioContext, destination: AudioNode, durationSec?: nu
     nodes.push(osc);
   });
 
-  // slow breathing of the pad
+  // slow breathing on its OWN gain stage — never on the ducking param,
+  // otherwise cancelScheduledValues snaps the value and clicks audibly
+  const breath = ac.createGain();
+  breath.gain.value = 1;
   const lfo = ac.createOscillator();
   const lfoGain = ac.createGain();
   lfo.frequency.value = 0.08;
-  lfoGain.gain.value = 0.012;
+  lfoGain.gain.value = 0.25;
   lfo.connect(lfoGain);
-  lfoGain.connect(gain.gain);
+  lfoGain.connect(breath.gain);
   lfo.start();
   if (durationSec) lfo.stop(durationSec);
   nodes.push(lfo);
 
-  filter.connect(gain);
+  filter.connect(breath);
+  breath.connect(gain);
   gain.connect(destination);
   return { nodes, gain };
 }
@@ -81,17 +104,19 @@ export function startAmbient(hz?: number) {
   if (!ac || ambient) return;
   ambient = buildPad(ac, ac.destination, undefined, hz);
   ambient.gain.gain.value = 0;
+  currentLevel = 'full';
   // soft fade in — nothing in Keiro starts abruptly
-  ambient.gain.gain.linearRampToValueAtTime(LEVEL_FULL, ac.currentTime + 5);
+  ambient.gain.gain.linearRampToValueAtTime(LEVEL_FULL * musicVol, ac.currentTime + 5);
 }
 
 /** Glide the pad toward a level (used for ducking under the voice). */
 function rampAmbient(level: number, seconds: number) {
   if (!ambient || !ctx) return;
+  currentLevel = level >= LEVEL_FULL ? 'full' : 'ducked';
   const g = ambient.gain.gain;
   g.cancelScheduledValues(ctx.currentTime);
   g.setValueAtTime(g.value, ctx.currentTime);
-  g.linearRampToValueAtTime(level, ctx.currentTime + seconds);
+  g.linearRampToValueAtTime(level * musicVol, ctx.currentTime + seconds);
 }
 
 /** Long goodbye for the end of a session. */
@@ -142,7 +167,7 @@ export function speakLine(text: string, lang: Language, gender: 'female' | 'male
   u.lang = lang === 'es' ? 'es-ES' : 'en-US';
   u.rate = 0.82;
   u.pitch = gender === 'male' ? 0.85 : 1.0;
-  u.volume = 1;
+  u.volume = voiceVol;
   const voice = pickBrowserVoice(lang, gender);
   if (voice) u.voice = voice;
   u.onstart = () => {
