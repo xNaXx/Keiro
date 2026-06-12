@@ -1,10 +1,46 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import React, { useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { useApp } from '../store';
 import { FONTS, RADII } from '../theme';
-import { ArrowLeft } from './Icons';
+import { ArrowLeft, Gear, Moon, Sun } from './Icons';
+
+/**
+ * Pressable with a soft spring scale — every touch in Keiro breathes a
+ * little instead of snapping.
+ */
+export function Tap({
+  children,
+  onPress,
+  style,
+  scaleTo = 0.96,
+  disabled,
+  hitSlop,
+}: {
+  children: React.ReactNode;
+  onPress?: () => void;
+  style?: ViewStyle | ViewStyle[];
+  scaleTo?: number;
+  disabled?: boolean;
+  hitSlop?: number;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const to = (v: number) =>
+    Animated.spring(scale, { toValue: v, useNativeDriver: true, speed: 30, bounciness: 5 }).start();
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      hitSlop={hitSlop}
+      onPressIn={() => to(scaleTo)}
+      onPressOut={() => to(1)}
+      style={style}
+    >
+      <Animated.View style={{ transform: [{ scale }] }}>{children}</Animated.View>
+    </Pressable>
+  );
+}
 
 /** Frosted-glass card, the building block of every surface in Keiro. */
 export function GlassCard({
@@ -36,9 +72,9 @@ export function GlassCard({
   );
   if (onPress)
     return (
-      <Pressable onPress={onPress} style={({ pressed }) => [style, { opacity: pressed ? 0.85 : 1 }]}>
+      <Tap onPress={onPress} style={style} scaleTo={0.97}>
         {inner}
-      </Pressable>
+      </Tap>
     );
   return <View style={style}>{inner}</View>;
 }
@@ -55,7 +91,7 @@ export function GlassIconButton({
 }) {
   const { palette } = useApp();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+    <Tap onPress={onPress} scaleTo={0.88}>
       <BlurView
         intensity={24}
         tint={palette.name === 'dark' ? 'dark' : 'light'}
@@ -73,7 +109,7 @@ export function GlassIconButton({
       >
         {children}
       </BlurView>
-    </Pressable>
+    </Tap>
   );
 }
 
@@ -84,6 +120,38 @@ export function BackButton() {
     <GlassIconButton onPress={() => router.back()}>
       <ArrowLeft color={palette.text} size={20} />
     </GlassIconButton>
+  );
+}
+
+/** Always-visible light/dark switch: one tap flips the theme. */
+export function ThemeToggle() {
+  const { palette, setThemeMode } = useApp();
+  const dark = palette.name === 'dark';
+  return (
+    <GlassIconButton onPress={() => setThemeMode(dark ? 'light' : 'dark')}>
+      {dark ? <Sun color={palette.text} size={19} /> : <Moon color={palette.text} size={18} />}
+    </GlassIconButton>
+  );
+}
+
+/** Settings shortcut, paired with the theme toggle in screen headers. */
+export function SettingsButton() {
+  const router = useRouter();
+  const { palette } = useApp();
+  return (
+    <GlassIconButton onPress={() => router.push('/settings')}>
+      <Gear color={palette.text} size={19} />
+    </GlassIconButton>
+  );
+}
+
+/** Standard header actions: theme switch + settings gear. */
+export function HeaderActions() {
+  return (
+    <View style={{ flexDirection: 'row', gap: 10 }}>
+      <ThemeToggle />
+      <SettingsButton />
+    </View>
   );
 }
 
@@ -154,19 +222,16 @@ export function PrimaryButton({
   const { palette } = useApp();
   const dark = palette.name === 'dark';
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.primary,
-        {
-          backgroundColor: dark ? 'rgba(240,244,255,0.92)' : 'rgba(255,255,255,0.75)',
-          opacity: pressed ? 0.85 : 1,
-        },
-        style,
-      ]}
-    >
-      <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 16, color: '#23284a' }}>{label}</Text>
-    </Pressable>
+    <Tap onPress={onPress} style={style} scaleTo={0.97}>
+      <View
+        style={[
+          styles.primary,
+          { backgroundColor: dark ? 'rgba(240,244,255,0.92)' : 'rgba(255,255,255,0.75)' },
+        ]}
+      >
+        <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 16, color: '#23284a' }}>{label}</Text>
+      </View>
+    </Tap>
   );
 }
 

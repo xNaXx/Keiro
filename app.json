@@ -27,6 +27,9 @@
       "output": "single",
       "favicon": "./assets/favicon.png"
     },
+    "experiments": {
+      "baseUrl": "/Keiro"
+    },
     "plugins": ["expo-router"]
   }
 }

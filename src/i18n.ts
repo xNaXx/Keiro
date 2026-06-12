@@ -147,6 +147,7 @@ const dict: Dict = {
 
   // demo notice
   demo_badge: { es: 'demo', en: 'demo' },
+  demo_voice: { es: 'voz de prueba del navegador', en: 'browser test voice' },
   demo_hint: { es: 'Modo demo: texto y audio simulados. Conecta tus claves de Claude y ElevenLabs para la generación real.', en: 'Demo mode: simulated text & audio. Connect your Claude and ElevenLabs keys for real generation.' },
 };
 
