@@ -7,7 +7,7 @@ import { GradientBackground } from '../src/components/GradientBackground';
 import { AuroraFigure } from '../src/components/AuroraFigure';
 import { RingFlower } from '../src/components/RingFlower';
 import { Sparkle } from '../src/components/Sparkle';
-import { BackButton, MicroLabel, PrimaryButton, Tap, ThemeToggle } from '../src/components/UI';
+import { BackButton, MicroLabel, PrimaryButton, SettingsButton, Tap, ThemeToggle } from '../src/components/UI';
 import { Check, Download, Pause, Play, SkipBack, SkipFwd } from '../src/components/Icons';
 import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES, RADII } from '../src/theme';
@@ -199,6 +199,7 @@ export default function PlayerScreen() {
           <Brand color={palette.text} />
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <ThemeToggle />
+            <SettingsButton />
             <Tap onPress={downloadFile} hitSlop={6} scaleTo={0.88}>
               <BlurView
                 intensity={24}

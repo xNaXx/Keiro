@@ -35,16 +35,18 @@ function GlassTabBar({ state, navigation }: any) {
               hitSlop={6}
               scaleTo={0.9}
             >
-              <Icon color={focused ? palette.text : palette.textFaint} size={21} strokeWidth={focused ? 1.9 : 1.5} />
-              <Text
-                style={{
-                  fontFamily: focused ? FONTS.sansMedium : FONTS.sans,
-                  fontSize: 10.5,
-                  color: focused ? palette.text : palette.textFaint,
-                }}
-              >
-                {item.label}
-              </Text>
+              <View style={{ alignItems: 'center', gap: 3 }}>
+                <Icon color={focused ? palette.text : palette.textFaint} size={21} strokeWidth={focused ? 1.9 : 1.5} />
+                <Text
+                  style={{
+                    fontFamily: focused ? FONTS.sansMedium : FONTS.sans,
+                    fontSize: 10.5,
+                    color: focused ? palette.text : palette.textFaint,
+                  }}
+                >
+                  {item.label}
+                </Text>
+              </View>
             </Tap>
           );
         })}

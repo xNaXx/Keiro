@@ -6,7 +6,7 @@ import { BlurView } from 'expo-blur';
 import { GradientBackground } from '../../src/components/GradientBackground';
 import { MoodIcon } from '../../src/components/MoodIcon';
 import { MoodOrb } from '../../src/components/MoodOrb';
-import { BackButton, GlassIconButton, MicroLabel, PrimaryButton, Tap, Title } from '../../src/components/UI';
+import { BackButton, GlassIconButton, HeaderActions, MicroLabel, PrimaryButton, Tap, Title } from '../../src/components/UI';
 import { PathTrail } from '../../src/components/PathTrail';
 import { ArrowLeft, Moon, SpeakerWave, Sun, Sunrise, Sunset } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
@@ -22,20 +22,20 @@ export default function AdvancedScreen() {
   const dark = palette.name === 'dark';
 
   const [step, setStep] = useState(0);
-  const [mood, setMood] = useState<string | null>(null);
+  const [mood, setMood] = useState<string>('calm');
   const [moment, setMoment] = useState<MomentId>(currentMoment());
-  const [duration, setDuration] = useState(10);
+  const [duration, setDuration] = useState(5);
   const [voice, setVoice] = useState(preferredVoice);
   const [energy, setEnergy] = useState<EnergyId>('serene');
 
   const titleKeys = ['adv_mood_title', 'adv_moment_title', 'adv_duration_title', 'adv_voice_title', 'adv_energy_title'];
-  const canContinue = step !== 0 || mood !== null;
+  const canContinue = true;
 
   const next = () => {
     if (step < STEPS.length - 1) return setStep(step + 1);
     router.push({
       pathname: '/create/generating',
-      params: { mood: mood!, moment, duration: String(duration), voice, energy, mode: 'advanced' },
+      params: { mood, moment, duration: String(duration), voice, energy, mode: 'advanced' },
     });
   };
 
@@ -57,9 +57,9 @@ export default function AdvancedScreen() {
         style={[
           styles.chip,
           {
-            backgroundColor: selected ? palette.glassStrong : palette.glass,
+            backgroundColor: selected ? palette.selectedBg : palette.glass,
             borderColor: selected ? palette.line : palette.glassBorder,
-            borderWidth: selected ? 1 : StyleSheet.hairlineWidth,
+            borderWidth: selected ? 1.4 : StyleSheet.hairlineWidth,
           },
         ]}
       >
@@ -87,7 +87,7 @@ export default function AdvancedScreen() {
               {t('adv_step', { a: step + 1, b: STEPS.length })}
             </Text>
           </View>
-          <View style={{ width: 44 }} />
+          <HeaderActions />
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -140,9 +140,9 @@ export default function AdvancedScreen() {
                     style={[
                       styles.voiceCard,
                       {
-                        backgroundColor: voice === v.id ? palette.glassStrong : palette.glass,
+                        backgroundColor: voice === v.id ? palette.selectedBg : palette.glass,
                         borderColor: voice === v.id ? palette.line : palette.glassBorder,
-                        borderWidth: voice === v.id ? 1 : StyleSheet.hairlineWidth,
+                        borderWidth: voice === v.id ? 1.4 : StyleSheet.hairlineWidth,
                       },
                     ]}
                   >
