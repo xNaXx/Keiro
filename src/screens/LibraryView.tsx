@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GradientBackground } from '../components/GradientBackground';
 import { MoodIcon } from '../components/MoodIcon';
 import { Body, GlassCard, HeaderActions, MicroLabel, Tap, Title } from '../components/UI';
 import { Check, Download } from '../components/Icons';
@@ -53,7 +52,7 @@ export function LibraryView() {
   };
 
   return (
-    <GradientBackground>
+    <>
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.topRow}>
@@ -104,7 +103,7 @@ export function LibraryView() {
           )}
         </ScrollView>
       </SafeAreaView>
-    </GradientBackground>
+    </>
   );
 }
 

@@ -14,6 +14,7 @@ import { LibraryView } from '../src/screens/LibraryView';
 import { ProfileView } from '../src/screens/ProfileView';
 import { Home, Library, UserIcon } from '../src/components/Icons';
 import { Tap } from '../src/components/UI';
+import { GradientBackground } from '../src/components/GradientBackground';
 import { useApp } from '../src/store';
 import { FONTS } from '../src/theme';
 
@@ -66,8 +67,28 @@ export default function MainPager() {
     { icon: UserIcon, label: t('tab_profile') },
   ];
 
+  // the background is one canvas, slightly wider than the screen: it drifts
+  // a fraction of the drag (parallax) instead of cutting between sections
+  const bgWidth = width * 1.18;
+  const bgShift = x.interpolate({
+    inputRange: [-(PAGES - 1) * width, 0],
+    outputRange: [-(bgWidth - width), 0],
+    extrapolate: 'clamp',
+  });
+
   return (
     <View style={{ flex: 1, overflow: 'hidden' }} {...pan.panHandlers}>
+      <Animated.View
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          width: bgWidth,
+          transform: [{ translateX: bgShift }],
+        }}
+      >
+        <GradientBackground glow={palette.name === 'dark' ? undefined : ['#ffd9b8', '#f6c4dd']} />
+      </Animated.View>
       <Animated.View
         style={{
           flexDirection: 'row',

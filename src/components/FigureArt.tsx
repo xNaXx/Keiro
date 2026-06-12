@@ -11,11 +11,20 @@ import { Float } from './Motion';
 export type FigureName = 'lotus' | 'warm' | 'profile-light' | 'profile-violet' | 'standing';
 
 const FIGURES: Record<FigureName, any> = {
-  lotus: require('../../assets/figures/lotus.png'),
-  warm: require('../../assets/figures/warm.png'),
-  'profile-light': require('../../assets/figures/profile-light.png'),
-  'profile-violet': require('../../assets/figures/profile-violet.png'),
-  standing: require('../../assets/figures/standing.png'),
+  lotus: require('../../assets/figures/lotus.jpg'),
+  warm: require('../../assets/figures/warm.jpg'),
+  'profile-light': require('../../assets/figures/profile-light.jpg'),
+  'profile-violet': require('../../assets/figures/profile-violet.jpg'),
+  standing: require('../../assets/figures/standing.jpg'),
+};
+
+/** native width/height of each artwork — inline figures never get distorted */
+const ASPECT: Record<FigureName, number> = {
+  lotus: 735 / 1303,
+  warm: 736 / 999,
+  'profile-light': 1,
+  'profile-violet': 736 / 920,
+  standing: 1,
 };
 
 export function FigureBackdrop({
@@ -49,21 +58,25 @@ export function FigureBackdrop({
 export function FigureImage({
   name,
   width,
-  height,
+  maxHeight,
   radius = 36,
 }: {
   name: FigureName;
   width: number;
-  height: number;
+  /** the image keeps its native aspect ratio, shrinking to fit if needed */
+  maxHeight?: number;
   radius?: number;
 }) {
+  const ar = ASPECT[name];
+  let w = width;
+  let h = width / ar;
+  if (maxHeight && h > maxHeight) {
+    h = maxHeight;
+    w = h * ar;
+  }
   return (
     <Float distance={5} duration={9000} scaleAmount={0.02}>
-      <Image
-        source={FIGURES[name]}
-        style={{ width, height, borderRadius: radius }}
-        resizeMode="cover"
-      />
+      <Image source={FIGURES[name]} style={{ width: w, height: h, borderRadius: radius }} resizeMode="cover" />
     </Float>
   );
 }

@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GradientBackground } from '../components/GradientBackground';
 import { GlassCard, HeaderActions, MicroLabel, Tap } from '../components/UI';
 import { PathTrail } from '../components/PathTrail';
 import { Sparkle } from '../components/Sparkle';
@@ -42,7 +41,7 @@ export function HomeView() {
   const lastMood = last ? MOODS.find((m) => m.id === last.config.mood) : null;
 
   return (
-    <GradientBackground glow={dark ? undefined : ['#ffd9b8', '#f6c4dd']}>
+    <>
       <SafeAreaView style={styles.fill}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
@@ -113,7 +112,7 @@ export function HomeView() {
           )}
         </ScrollView>
       </SafeAreaView>
-    </GradientBackground>
+    </>
   );
 }
 
