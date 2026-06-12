@@ -25,16 +25,21 @@ export function UpgradeModal() {
 
   return (
     <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: fade }]}>
+      {/* the whole screen blurs and dims behind the card */}
+      <BlurView
+        intensity={36}
+        tint={palette.name === 'dark' ? 'dark' : 'light'}
+        style={StyleSheet.absoluteFill}
+      />
       <Tap onPress={hideUpgrade} style={StyleSheet.absoluteFill as any}>
         <View style={{ flex: 1 }} />
       </Tap>
-      <BlurView
-        intensity={40}
-        tint={palette.name === 'dark' ? 'dark' : 'light'}
+      {/* near-solid card: expo-blur on web overrides backgroundColor, so no blur here */}
+      <View
         style={[
           styles.card,
           {
-            backgroundColor: palette.name === 'dark' ? 'rgba(32,25,58,0.88)' : 'rgba(255,255,255,0.86)',
+            backgroundColor: palette.name === 'dark' ? 'rgba(36,28,62,0.97)' : 'rgba(252,250,255,0.97)',
             borderColor: palette.glassBorder,
           },
         ]}
@@ -53,14 +58,14 @@ export function UpgradeModal() {
         <Tap onPress={hideUpgrade} hitSlop={8}>
           <Text style={{ fontFamily: FONTS.sans, fontSize: 14, color: palette.textFaint }}>{t('up_no')}</Text>
         </Tap>
-      </BlurView>
+      </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   backdrop: {
-    backgroundColor: 'rgba(20,15,40,0.35)',
+    backgroundColor: 'rgba(20,15,40,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 50,

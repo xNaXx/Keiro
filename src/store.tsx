@@ -54,7 +54,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [onboarded, setOnboardedState] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('light');
   const [language, setLanguageState] = useState<Language>('es');
   const [preferredVoice, setPreferredVoiceState] = useState('lua');
   const [sessions, setSessions] = useState<Meditation[]>([]);
@@ -68,7 +68,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const d = JSON.parse(raw);
           setOnboardedState(!!d.onboarded);
           setUser(d.user ?? null);
-          setThemeModeState(d.themeMode ?? 'system');
+          setThemeModeState(d.themeMode ?? 'light');
           setLanguageState(d.language ?? 'es');
           setPreferredVoiceState(d.preferredVoice ?? 'lua');
           setSessions(d.sessions ?? []);
@@ -87,9 +87,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [hydrated, onboarded, user, themeMode, language, preferredVoice, sessions]);
 
   const palette = useMemo(() => {
+    // the free plan always lives in light mode — dark is a premium perk
+    if (plan === 'free') return LIGHT;
     const mode = themeMode === 'system' ? (system ?? 'light') : themeMode;
     return mode === 'dark' ? DARK : LIGHT;
-  }, [themeMode, system]);
+  }, [themeMode, system, plan]);
 
   const pathDay = useMemo(() => {
     if (!user) return 1;

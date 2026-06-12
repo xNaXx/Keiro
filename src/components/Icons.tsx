@@ -178,10 +178,10 @@ export const MusicNote = (p: P) => (
 
 export const VoiceWave = (p: P) => (
   <D {...p}>
-    <Circle cx="5" cy="12" r="1" fill={p.color} stroke="none" />
-    <Path d="M9 8.5 A 5 5 0 0 1 9 15.5" />
-    <Path d="M13 6 A 8.6 8.6 0 0 1 13 18" />
-    <Path d="M17 3.8 A 11.8 11.8 0 0 1 17 20.2" />
+    {/* head in profile, speaking to the right */}
+    <Path d="M9.5 4.5 C5.8 4.5 3.5 7.3 3.5 10.4 C3.5 12.2 4.3 13.5 4.3 14.8 L4.3 16.2 L5.8 16.6 L5.8 19.5 L10.8 19.5 L10.8 16.8 C12.6 16 13.6 14.4 13.6 12.2 C13.6 12.2 14.6 11.8 14.6 11.2 L13.4 9.2 C13.2 6.4 11.8 4.5 9.5 4.5 Z" />
+    <Path d="M17.5 9 A 4.6 4.6 0 0 1 17.5 15" />
+    <Path d="M20.2 7 A 8.2 8.2 0 0 1 20.2 17" />
   </D>
 );
 
