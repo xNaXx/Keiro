@@ -102,6 +102,49 @@ const dict: Dict = {
   energy_bright: { es: 'Luminosa', en: 'Bright' },
   energy_bright_d: { es: 'Suave impulso vital', en: 'A gentle lift of life' },
 
+  // sound step
+  adv_sound_title: { es: '¿Qué sonido te\nacompaña?', en: 'What sound walks\nwith you?' },
+  sound_label: { es: 'sonido', en: 'sound' },
+  sound_ambient: { es: 'Ambiental', en: 'Ambient' },
+  sound_ambient_d: { es: 'Texturas suaves y cálidas', en: 'Soft, warm textures' },
+  sound_hz: { es: 'Frecuencias Hz', en: 'Hz frequencies' },
+  sound_hz_d: { es: 'Tonos solfeggio puros', en: 'Pure solfeggio tones' },
+
+  // voice density step
+  adv_density_title: { es: '¿Cada cuánto quieres\noír la voz?', en: 'How often should\nthe voice speak?' },
+  density_label: { es: 'ritmo', en: 'pace' },
+  density_low: { es: 'Espaciada', en: 'Spacious' },
+  density_low_d: { es: 'Mucho silencio entre frases', en: 'Long silences between phrases' },
+  density_medium: { es: 'Equilibrada', en: 'Balanced' },
+  density_medium_d: { es: 'Un punto medio sereno', en: 'A serene middle ground' },
+  density_high: { es: 'Constante', en: 'Steady' },
+  density_high_d: { es: 'Acompañamiento continuo', en: 'Continuous guidance' },
+
+  // paywall
+  pw_label: { es: 'premium', en: 'premium' },
+  pw_title: { es: 'Tu calma,\nsin límites', en: 'Your calm,\nwithout limits' },
+  pw_f1: { es: 'Meditaciones ilimitadas sin anuncios', en: 'Unlimited meditations, no ads' },
+  pw_f2: { es: 'Todas las voces y frecuencias Hz', en: 'Every voice and Hz frequency' },
+  pw_f3: { es: 'Descargas sin conexión ilimitadas', en: 'Unlimited offline downloads' },
+  pw_monthly: { es: 'Mensual', en: 'Monthly' },
+  pw_price_m: { es: '4,99 €/mes', en: '€4.99/mo' },
+  pw_yearly: { es: 'Anual', en: 'Yearly' },
+  pw_price_y: { es: '39,99 €/año', en: '€39.99/yr' },
+  pw_save: { es: 'ahorra 33%', en: 'save 33%' },
+  pw_cta: { es: 'Empezar 7 días gratis', en: 'Start 7 days free' },
+  pw_later: { es: 'Quizás más tarde', en: 'Maybe later' },
+  pw_active: { es: 'Plan Premium activo', en: 'Premium plan active' },
+  pw_go: { es: 'Hazte Premium', en: 'Go Premium' },
+  pw_cancel: { es: 'Cancelar suscripción', en: 'Cancel subscription' },
+
+  // ad (free tier)
+  ad_label: { es: 'anuncio', en: 'ad' },
+  ad_title: { es: 'Tu meditación empieza en {s}…', en: 'Your meditation starts in {s}…' },
+  ad_body: { es: 'Keiro gratis se apoya en un breve anuncio para cubrir el coste de generar tu meditación.', en: 'Free Keiro shows one short ad to cover the cost of generating your meditation.' },
+  ad_fake: { es: 'Aquí iría tu anuncio · espacio publicitario', en: 'Your ad would live here · ad space' },
+  ad_remove: { es: 'Quitar anuncios con Premium', en: 'Remove ads with Premium' },
+  ad_continue: { es: 'Continuar', en: 'Continue' },
+
   // generating
   gen_title: { es: 'Trazando tu sendero…', en: 'Tracing your path…' },
   gen_1: { es: 'Escuchando cómo te sientes', en: 'Listening to how you feel' },

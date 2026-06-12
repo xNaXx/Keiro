@@ -74,6 +74,31 @@ export const MOMENTS: { id: MomentId; tKey: string; icon: 'sunrise' | 'sun' | 's
   { id: 'night', tKey: 'moment_night', icon: 'moon' },
 ];
 
+export type SoundType = 'ambient' | 'hz';
+
+export interface HzOption {
+  freq: number;
+  name: { es: string; en: string };
+  desc: { es: string; en: string };
+  tint: string;
+}
+
+/** The nine solfeggio frequencies, each with its traditional intention. */
+export const HZ_OPTIONS: HzOption[] = [
+  { freq: 174, name: { es: 'Alivio', en: 'Relief' }, desc: { es: 'Calma el dolor físico y emocional', en: 'Eases physical & emotional pain' }, tint: '#3b3a78' },
+  { freq: 285, name: { es: 'Regeneración', en: 'Renewal' }, desc: { es: 'Regenera tejidos y aumenta la energía', en: 'Regenerates tissue, lifts energy' }, tint: '#67d4b8' },
+  { freq: 396, name: { es: 'Liberación', en: 'Release' }, desc: { es: 'Libera la culpa y el miedo', en: 'Releases guilt and fear' }, tint: '#d83a3a' },
+  { freq: 417, name: { es: 'Cambio', en: 'Change' }, desc: { es: 'Facilita el cambio y limpia lo negativo', en: 'Facilitates change, clears negativity' }, tint: '#e8842c' },
+  { freq: 528, name: { es: 'Amor', en: 'Love' }, desc: { es: 'La frecuencia del amor y la transformación', en: 'The love & transformation frequency' }, tint: '#e8c531' },
+  { freq: 639, name: { es: 'Armonía', en: 'Harmony' }, desc: { es: 'Equilibra emociones y relaciones', en: 'Balances emotions & relationships' }, tint: '#7cb83a' },
+  { freq: 741, name: { es: 'Expresión', en: 'Expression' }, desc: { es: 'Despeja la mente y la voz propia', en: 'Clears the mind and your own voice' }, tint: '#4a78e0' },
+  { freq: 852, name: { es: 'Intuición', en: 'Intuition' }, desc: { es: 'Despierta la intuición y la fuerza interior', en: 'Awakens intuition & inner strength' }, tint: '#7a4fd0' },
+  { freq: 963, name: { es: 'Consciencia', en: 'Awareness' }, desc: { es: 'Conexión y visión elevada', en: 'Connection & higher vision' }, tint: '#c34fd0' },
+];
+
+/** How often the voice speaks during the session. */
+export type VoiceDensity = 'low' | 'medium' | 'high';
+
 export type EnergyId = 'whisper' | 'serene' | 'warm' | 'bright';
 export const ENERGIES: { id: EnergyId; tKey: string; dKey: string }[] = [
   { id: 'whisper', tKey: 'energy_whisper', dKey: 'energy_whisper_d' },
@@ -90,6 +115,10 @@ export interface SessionConfig {
   energy: EnergyId;
   language: Language;
   mode: 'simple' | 'advanced';
+  soundType: SoundType;
+  /** solfeggio frequency when soundType === 'hz' */
+  hzFreq?: number;
+  density: VoiceDensity;
 }
 
 export interface MeditationLine {

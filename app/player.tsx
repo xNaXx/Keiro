@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, GestureResponderEvent, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, GestureResponderEvent, PanResponder, Platform, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
@@ -13,7 +13,8 @@ import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES, RADII } from '../src/theme';
 import { MOODS, VOICES } from '../src/data';
 import { hasElevenLabsKey } from '../src/services/elevenlabs';
-import { fadeOutAmbient, renderAmbientWav, speakLine, startAmbient, stopAmbient, stopSpeech } from '../src/services/demoAudio';
+import { fadeOutAmbient, onSpeaking, renderAmbientWav, speakLine, startAmbient, stopAmbient, stopSpeech } from '../src/services/demoAudio';
+import { VoiceOrb } from '../src/components/VoiceOrb';
 import { Brand } from '../src/components/KeiroLogo';
 
 function fmt(sec: number) {
@@ -67,7 +68,10 @@ export default function PlayerScreen() {
 
   const [elapsed, setElapsed] = useState(0);
   const [playing, setPlaying] = useState(true);
-  const [speed, setSpeed] = useState(1);
+  const [speaking, setSpeaking] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const sheetShift = useRef(new Animated.Value(0)).current;
+  const sheetH = useRef(0);
   const [done, setDone] = useState(false);
   const lineFade = useRef(new Animated.Value(0)).current;
   const waveWidth = useRef(1);
@@ -82,7 +86,7 @@ export default function PlayerScreen() {
     if (!playing || done) return;
     const iv = setInterval(() => {
       setElapsed((e) => {
-        const nx = e + speed;
+        const nx = e + 1;
         if (nx >= durationSec) {
           setDone(true);
           setPlaying(false);
@@ -92,11 +96,34 @@ export default function PlayerScreen() {
       });
     }, 1000);
     return () => clearInterval(iv);
-  }, [playing, speed, durationSec, done]);
+  }, [playing, durationSec, done]);
+
+  // voice activity drives the orb
+  useEffect(() => onSpeaking(setSpeaking), []);
+
+  const setSheet = (c: boolean) => {
+    setCollapsed(c);
+    Animated.spring(sheetShift, {
+      toValue: c ? 1 : 0,
+      useNativeDriver: true,
+      speed: 9,
+      bounciness: 2,
+    }).start();
+  };
+
+  const sheetPan = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 16 && Math.abs(g.dy) > Math.abs(g.dx) * 1.4,
+      onPanResponderRelease: (_, g) => {
+        if (g.dy > 40) setSheet(true);
+        else if (g.dy < -40) setSheet(false);
+      },
+    })
+  ).current;
 
   // demo soundscape: ambient pad while playing, browser voice per line
   useEffect(() => {
-    if (demo && playing && !done) startAmbient();
+    if (demo && playing && !done) startAmbient(meditation?.config.soundType === 'hz' ? meditation.config.hzFreq : undefined);
     else {
       stopAmbient();
       stopSpeech();
@@ -161,7 +188,7 @@ export default function PlayerScreen() {
         blob = await (await fetch(meditation.audioUri)).blob();
         name = `Keiro — ${meditation.title}.mp3`;
       } else {
-        blob = await renderAmbientWav(meditation.durationSec);
+        blob = await renderAmbientWav(meditation.durationSec, meditation.config.soundType === 'hz' ? meditation.config.hzFreq : undefined);
         name = `Keiro — ${meditation.title} (ambiente demo).wav`;
       }
       if (!blob) return;
@@ -246,25 +273,63 @@ export default function PlayerScreen() {
           <FigureBackdrop name={figure} fadeTo={mp.bg[2]} />
         </View>
 
+        <Animated.View
+          onLayout={(e) => (sheetH.current = e.nativeEvent.layout.height)}
+          style={{
+            marginTop: 'auto',
+            transform: [
+              {
+                translateY: sheetShift.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 99999].map((v, i) => (i === 0 ? 0 : Math.max(0, (sheetH.current || 420) - 96))),
+                }),
+              },
+            ],
+          }}
+        >
         <BlurView
           intensity={30}
           tint={palette.name === 'dark' ? 'dark' : 'light'}
           style={[styles.sheet, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
         >
-          <View style={[styles.handle, { backgroundColor: palette.textFaint }]} />
-          <MicroLabel>{t('mood_label')}</MicroLabel>
-          <Text style={[styles.sheetTitle, { color: palette.text }]}>{meditation.title}</Text>
+          <View {...sheetPan.panHandlers}>
+            <Tap onPress={() => setSheet(!collapsed)} hitSlop={8}>
+              <View style={{ paddingVertical: 4 }}>
+                <View style={[styles.handle, { backgroundColor: palette.textFaint }]} />
+              </View>
+            </Tap>
+            {collapsed ? (
+              <View style={styles.miniRow}>
+                <VoiceOrb size={40} color={palette.line} active={speaking && playing}>
+                  <Text style={{ fontFamily: FONTS.sans, fontSize: 10, color: palette.text }}>
+                    {Math.round(progress * 100)}%
+                  </Text>
+                </VoiceOrb>
+                <Text style={[styles.miniTitle, { color: palette.text }]} numberOfLines={1}>
+                  {meditation.title}
+                </Text>
+                <Tap onPress={() => setPlaying(!playing)} hitSlop={10} scaleTo={0.85}>
+                  {playing ? <Pause color={palette.text} size={22} /> : <Play color={palette.text} size={22} />}
+                </Tap>
+              </View>
+            ) : (
+              <>
+                <MicroLabel>{t('mood_label')}</MicroLabel>
+                <Text style={[styles.sheetTitle, { color: palette.text }]}>{meditation.title}</Text>
+              </>
+            )}
+          </View>
 
-          <View style={{ alignItems: 'center', marginTop: 4 }}>
-            <RingFlower size={176} color={palette.line} rotate={playing}>
+          <View style={{ alignItems: 'center', marginTop: 10 }}>
+            <VoiceOrb size={176} color={palette.line} active={speaking && playing}>
               <View style={{ alignItems: 'center', gap: 2 }}>
                 <Text style={[styles.moodWord, { color: palette.text }]}>{mood.feeling[language]}</Text>
                 <Text style={{ fontFamily: FONTS.sans, fontSize: 12, color: palette.textFaint }}>
                   {Math.round(progress * 100)}%
                 </Text>
               </View>
-              <Sparkle size={13} color={palette.text} style={{ position: 'absolute', top: 28, left: 30 }} twinkle />
-            </RingFlower>
+              <Sparkle size={13} color={palette.text} style={{ position: 'absolute', top: 24, left: 26 }} twinkle />
+            </VoiceOrb>
           </View>
 
           <Animated.Text
@@ -318,13 +383,12 @@ export default function PlayerScreen() {
           </View>
 
           {demo && (
-            <Tap onPress={() => setSpeed(speed === 1 ? 8 : 1)} style={{ alignItems: 'center', marginTop: 12 }} hitSlop={8}>
-              <Text style={{ fontFamily: FONTS.sans, fontSize: 11.5, color: palette.textFaint, letterSpacing: 1 }}>
-                {t('demo_badge')} · x{speed} · {t('demo_voice')}
-              </Text>
-            </Tap>
+            <Text style={{ fontFamily: FONTS.sans, fontSize: 11.5, color: palette.textFaint, letterSpacing: 1, textAlign: 'center', marginTop: 12 }}>
+              {t('demo_badge')} · {t('demo_voice')}
+            </Text>
           )}
         </BlurView>
+        </Animated.View>
       </SafeAreaView>
     </GradientBackground>
   );
@@ -350,7 +414,6 @@ const styles = StyleSheet.create({
   },
   figureZone: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   sheet: {
-    marginTop: 'auto',
     borderTopLeftRadius: RADII.card + 6,
     borderTopRightRadius: RADII.card + 6,
     borderWidth: StyleSheet.hairlineWidth,
@@ -359,7 +422,9 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 28,
   },
-  handle: { width: 36, height: 3, borderRadius: 2, alignSelf: 'center', opacity: 0.5, marginBottom: 12 },
+  handle: { width: 36, height: 3, borderRadius: 2, alignSelf: 'center', opacity: 0.5, marginBottom: 8 },
+  miniRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 4, paddingBottom: 10 },
+  miniTitle: { flex: 1, fontFamily: FONTS.sansMedium, fontSize: 15 },
   sheetTitle: { fontFamily: FONTS.sans, fontSize: 19, textAlign: 'center', marginTop: 8 },
   moodWord: { fontFamily: FONTS.serif, fontSize: 30, letterSpacing: 0.5 },
   line: { fontFamily: FONTS.serifItalic, fontSize: 16, lineHeight: 23, textAlign: 'center', marginTop: 6, minHeight: 46 },

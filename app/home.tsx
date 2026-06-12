@@ -69,7 +69,7 @@ export default function MainPager() {
 
   // the background is one canvas, slightly wider than the screen: it drifts
   // a fraction of the drag (parallax) instead of cutting between sections
-  const bgWidth = width * 1.18;
+  const bgWidth = width * 1.45;
   const bgShift = x.interpolate({
     inputRange: [-(PAGES - 1) * width, 0],
     outputRange: [-(bgWidth - width), 0],

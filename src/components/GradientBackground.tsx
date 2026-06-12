@@ -60,9 +60,15 @@ function Stars() {
 
 /** Soft drifting clouds of light for light mode. */
 function Glow({ colors }: { colors: string[] }) {
-  const { width, height } = useWindowDimensions();
+  const [size, setSize] = React.useState({ width: 0, height: 0 });
+  const { width, height } = size;
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+      onLayout={(e) => setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
+    >
+      {width > 0 && (
       <Float distance={14} duration={16000} scaleAmount={0.03} style={StyleSheet.absoluteFill as any}>
       <Svg width={width} height={height}>
         <Defs>
@@ -81,6 +87,7 @@ function Glow({ colors }: { colors: string[] }) {
         <Circle cx={width * 0.92} cy={height * 0.62} r={width * 0.6} fill="url(#glowB)" />
       </Svg>
       </Float>
+      )}
     </View>
   );
 }

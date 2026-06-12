@@ -12,12 +12,12 @@ import { FONTS, RADII } from '../../src/theme';
 import { MOODS } from '../../src/data';
 
 export default function SimpleScreen() {
-  const { t, palette, language } = useApp();
+  const { t, palette, language, plan } = useApp();
   const router = useRouter();
   const dark = palette.name === 'dark';
 
   const choose = (mood: string) => {
-    router.push({ pathname: '/create/generating', params: { mood, mode: 'simple' } });
+    router.push({ pathname: plan === 'free' ? '/create/ad' : '/create/generating', params: { mood, mode: 'simple' } });
   };
 
   return (
