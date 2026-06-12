@@ -68,7 +68,7 @@ export default function Onboarding() {
             return (
               <View key={i} style={[styles.slide, { width }]}>
                 <View style={styles.figureWrap}>
-                  <FigureImage name={s.figure} width={250} height={290} />
+                  <FigureImage name={s.figure} width={250} maxHeight={300} />
                 </View>
                 <MicroLabel>{t('ob_tag')}</MicroLabel>
                 <View style={{ height: 14 }} />

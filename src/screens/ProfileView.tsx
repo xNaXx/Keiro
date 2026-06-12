@@ -3,7 +3,6 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { GradientBackground } from '../components/GradientBackground';
 import { GlassCard, HeaderActions, MicroLabel, PrimaryButton, Tap } from '../components/UI';
 import { Camera, Logout, Pencil } from '../components/Icons';
 import { PathTrail } from '../components/PathTrail';
@@ -49,7 +48,7 @@ export function ProfileView() {
   );
 
   return (
-    <GradientBackground>
+    <>
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
@@ -135,7 +134,7 @@ export function ProfileView() {
           </Pressable>
         </ScrollView>
       </SafeAreaView>
-    </GradientBackground>
+    </>
   );
 }
 
