@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { GradientBackground } from '../src/components/GradientBackground';
-import { AuroraFigure } from '../src/components/AuroraFigure';
+import { FigureBackdrop, FigureName } from '../src/components/FigureArt';
 import { RingFlower } from '../src/components/RingFlower';
 import { Sparkle } from '../src/components/Sparkle';
 import { BackButton, MicroLabel, PrimaryButton, SettingsButton, Tap, ThemeToggle } from '../src/components/UI';
@@ -73,6 +73,9 @@ export default function PlayerScreen() {
   const waveWidth = useRef(1);
 
   const demo = !hasElevenLabsKey() && !meditation?.audioUri;
+  const dark = palette.name === 'dark';
+  // tall artworks crop gracefully into the phone frame
+  const figure: FigureName = dark ? 'profile-violet' : 'warm';
   const durationSec = meditation?.durationSec ?? 300;
 
   useEffect(() => {
@@ -230,12 +233,7 @@ export default function PlayerScreen() {
         </View>
 
         <View style={styles.figureZone}>
-          <AuroraFigure
-            pose={meditation.config.mood === 'sadness' ? 'bowed' : 'gazing'}
-            colors={mp.figure}
-            width={420}
-            height={420}
-          />
+          <FigureBackdrop name={figure} fadeTo={mp.bg[2]} />
         </View>
 
         <BlurView
@@ -340,8 +338,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
   },
-  figureZone: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', marginTop: -30 },
+  figureZone: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   sheet: {
+    marginTop: 'auto',
     borderTopLeftRadius: RADII.card + 6,
     borderTopRightRadius: RADII.card + 6,
     borderWidth: StyleSheet.hairlineWidth,
@@ -349,7 +348,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 14,
     paddingBottom: 28,
-    marginTop: -56,
   },
   handle: { width: 36, height: 3, borderRadius: 2, alignSelf: 'center', opacity: 0.5, marginBottom: 12 },
   sheetTitle: { fontFamily: FONTS.sans, fontSize: 19, textAlign: 'center', marginTop: 8 },

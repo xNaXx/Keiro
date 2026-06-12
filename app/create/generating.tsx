@@ -3,7 +3,7 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '../../src/components/GradientBackground';
-import { AuroraFigure } from '../../src/components/AuroraFigure';
+import { FigureBackdrop } from '../../src/components/FigureArt';
 import { RingFlower } from '../../src/components/RingFlower';
 import { Sparkle } from '../../src/components/Sparkle';
 import { Brand } from '../../src/components/KeiroLogo';
@@ -80,7 +80,9 @@ export default function GeneratingScreen() {
       <SafeAreaView style={styles.fill}>
         <View style={styles.center}>
           <RingFlower size={320} color={palette.line}>
-            <AuroraFigure pose="sitting" colors={mp.figure} width={230} height={250} />
+            <View style={{ width: 240, height: 240, borderRadius: 120, overflow: 'hidden' }}>
+              <FigureBackdrop name="lotus" />
+            </View>
           </RingFlower>
 
           <View style={{ alignItems: 'center', gap: 14, marginTop: 10 }}>

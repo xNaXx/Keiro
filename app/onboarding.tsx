@@ -12,17 +12,17 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientBackground } from '../src/components/GradientBackground';
-import { AuroraFigure, Pose } from '../src/components/AuroraFigure';
+import { FigureImage, FigureName } from '../src/components/FigureArt';
 import { PathTrail } from '../src/components/PathTrail';
 import { KeiroLogo } from '../src/components/KeiroLogo';
 import { Body, MicroLabel, PrimaryButton, Title } from '../src/components/UI';
 import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES } from '../src/theme';
 
-const SLIDES: { pose: Pose; mood: string; titleKey: string; bodyKey: string }[] = [
-  { pose: 'gazing', mood: 'calm', titleKey: 'ob1_title', bodyKey: 'ob1_body' },
-  { pose: 'sitting', mood: 'anxiety', titleKey: 'ob2_title', bodyKey: 'ob2_body' },
-  { pose: 'bowed', mood: 'gratitude', titleKey: 'ob3_title', bodyKey: 'ob3_body' },
+const SLIDES: { figure: FigureName; titleKey: string; bodyKey: string }[] = [
+  { figure: 'profile-light', titleKey: 'ob1_title', bodyKey: 'ob1_body' },
+  { figure: 'lotus', titleKey: 'ob2_title', bodyKey: 'ob2_body' },
+  { figure: 'warm', titleKey: 'ob3_title', bodyKey: 'ob3_body' },
 ];
 
 export default function Onboarding() {
@@ -65,11 +65,10 @@ export default function Onboarding() {
           style={styles.fill}
         >
           {SLIDES.map((s, i) => {
-            const mp = MOOD_PALETTES[s.mood][palette.name];
             return (
               <View key={i} style={[styles.slide, { width }]}>
                 <View style={styles.figureWrap}>
-                  <AuroraFigure pose={s.pose} colors={mp.figure} width={280} height={300} />
+                  <FigureImage name={s.figure} width={250} height={290} />
                 </View>
                 <MicroLabel>{t('ob_tag')}</MicroLabel>
                 <View style={{ height: 14 }} />
