@@ -41,7 +41,7 @@ function Chip({
           styles.chip,
           {
             backgroundColor: selected ? palette.selectedBg : palette.glass,
-            borderColor: selected ? palette.line : palette.glassBorder,
+            borderColor: selected ? palette.selectedBorder : palette.glassBorder,
           },
         ]}
       >
@@ -147,7 +147,7 @@ export default function AdvancedScreen() {
                       styles.voiceCard,
                       {
                         backgroundColor: voice === v.id ? palette.selectedBg : palette.glass,
-                        borderColor: voice === v.id ? palette.line : palette.glassBorder,
+                        borderColor: voice === v.id ? palette.selectedBorder : palette.glassBorder,
                       },
                     ]}
                   >

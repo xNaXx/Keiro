@@ -20,6 +20,8 @@ export interface Palette {
   glassBorder: string;
   /** clearly visible background for a selected option */
   selectedBg: string;
+  /** strong outline for the selected option */
+  selectedBorder: string;
   line: string;
   accent: string;
   buttonText: string;
@@ -36,6 +38,7 @@ export const LIGHT: Palette = {
   glassStrong: 'rgba(255,255,255,0.55)',
   glassBorder: 'rgba(255,255,255,0.55)',
   selectedBg: 'rgba(255,255,255,0.78)',
+  selectedBorder: 'rgba(58,53,80,0.55)',
   line: 'rgba(255,255,255,0.85)',
   accent: '#fff6ea',
   buttonText: '#3a3550',
@@ -52,6 +55,7 @@ export const DARK: Palette = {
   glassStrong: 'rgba(168,186,255,0.16)',
   glassBorder: 'rgba(210,222,255,0.22)',
   selectedBg: 'rgba(190,208,255,0.30)',
+  selectedBorder: 'rgba(240,246,255,0.95)',
   line: 'rgba(228,234,255,0.75)',
   accent: '#ffe9b8',
   buttonText: '#10142e',

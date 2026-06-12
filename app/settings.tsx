@@ -103,7 +103,7 @@ export default function SettingsScreen() {
                           styles.voiceChip,
                           {
                             backgroundColor: sel ? palette.selectedBg : palette.glass,
-                            borderColor: sel ? palette.line : palette.glassBorder,
+                            borderColor: sel ? palette.selectedBorder : palette.glassBorder,
                           },
                         ]}
                       >

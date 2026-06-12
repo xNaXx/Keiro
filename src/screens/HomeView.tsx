@@ -2,18 +2,18 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GradientBackground } from '../../src/components/GradientBackground';
-import { GlassCard, HeaderActions, MicroLabel, Tap } from '../../src/components/UI';
-import { PathTrail } from '../../src/components/PathTrail';
-import { Sparkle } from '../../src/components/Sparkle';
-import { Brand } from '../../src/components/KeiroLogo';
-import { Float, SwipeNav } from '../../src/components/Motion';
-import { Play, Plus } from '../../src/components/Icons';
-import { useApp } from '../../src/store';
-import { FONTS } from '../../src/theme';
-import { MOODS, currentMoment } from '../../src/data';
+import { GradientBackground } from '../components/GradientBackground';
+import { GlassCard, HeaderActions, MicroLabel, Tap } from '../components/UI';
+import { PathTrail } from '../components/PathTrail';
+import { Sparkle } from '../components/Sparkle';
+import { Brand } from '../components/KeiroLogo';
+import { Float } from '../components/Motion';
+import { Play, Plus } from '../components/Icons';
+import { useApp } from '../store';
+import { FONTS } from '../theme';
+import { MOODS, currentMoment } from '../data';
 
-export default function HomeScreen() {
+export function HomeView() {
   const { t, palette, user, pathDay, sessions, language } = useApp();
   const router = useRouter();
   const moment = currentMoment();
@@ -43,7 +43,6 @@ export default function HomeScreen() {
 
   return (
     <GradientBackground glow={dark ? undefined : ['#ffd9b8', '#f6c4dd']}>
-      <SwipeNav right="/library">
       <SafeAreaView style={styles.fill}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
@@ -114,7 +113,6 @@ export default function HomeScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
-      </SwipeNav>
     </GradientBackground>
   );
 }
