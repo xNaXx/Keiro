@@ -84,7 +84,7 @@ export function AuroraFigure({
 
   return (
     <Animated.View style={{ width, height, transform: [{ scale }] }}>
-      <Svg width={width} height={height} viewBox="0 0 300 340">
+      <Svg width={width} height={height} viewBox="-85 -65 470 440">
         <Defs>
           <Filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
             <FeGaussianBlur in="SourceGraphic" stdDeviation="9" />
@@ -108,7 +108,7 @@ export function AuroraFigure({
             <Stop offset="1" stopColor="#fff" stopOpacity="0" />
           </LinearGradient>
           <Mask id="fadeMask">
-            <Rect x="0" y="0" width="300" height="340" fill="url(#fadeY)" />
+            <Rect x="-85" y="-65" width="470" height="440" fill="url(#fadeY)" />
           </Mask>
         </Defs>
 

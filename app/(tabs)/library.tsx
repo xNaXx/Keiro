@@ -7,6 +7,7 @@ import { MoodIcon } from '../../src/components/MoodIcon';
 import { Body, GlassCard, HeaderActions, MicroLabel, Tap, Title } from '../../src/components/UI';
 import { Check, Download } from '../../src/components/Icons';
 import { Sparkle } from '../../src/components/Sparkle';
+import { Brand } from '../../src/components/KeiroLogo';
 import { useApp } from '../../src/store';
 import { FONTS } from '../../src/theme';
 import { MOODS, Meditation } from '../../src/data';
@@ -56,7 +57,7 @@ export default function LibraryScreen() {
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.topRow}>
             <View style={{ width: 98 }} />
-            <MicroLabel>{t('tab_library').toLowerCase()}</MicroLabel>
+            <Brand color={palette.text} />
             <HeaderActions />
           </View>
           <View style={{ alignItems: 'center', marginBottom: 22 }}>

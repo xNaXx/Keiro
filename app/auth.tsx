@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { GradientBackground } from '../src/components/GradientBackground';
-import { Sparkle } from '../src/components/Sparkle';
+import { KeiroLogo } from '../src/components/KeiroLogo';
 import { AppleLogo, FacebookLogo, GoogleLogo } from '../src/components/Icons';
 import { Body, MicroLabel, PrimaryButton } from '../src/components/UI';
 import { useApp } from '../src/store';
@@ -65,8 +65,7 @@ export default function Auth() {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
             <View style={styles.logoBlock}>
-              <Sparkle size={26} color={palette.text} twinkle />
-              <Text style={[styles.wordmark, { color: palette.text }]}>Keiro</Text>
+              <KeiroLogo size={46} color={palette.text} />
               <MicroLabel>{t('ob_tag')}</MicroLabel>
             </View>
 

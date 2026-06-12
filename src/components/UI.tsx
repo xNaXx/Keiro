@@ -26,15 +26,34 @@ export function Tap({
   hitSlop?: number;
 }) {
   const scale = useRef(new Animated.Value(1)).current;
-  const to = (v: number) =>
-    Animated.spring(scale, { toValue: v, useNativeDriver: true, speed: 30, bounciness: 5 }).start();
+  const pressed = useRef(false);
+
+  const down = () => {
+    pressed.current = true;
+    Animated.timing(scale, { toValue: scaleTo, duration: 110, useNativeDriver: true }).start();
+  };
+  const up = () => {
+    pressed.current = false;
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 9 }).start();
+  };
+  // mouse clicks are near-instant: guarantee a visible pulse anyway
+  const pulse = () => {
+    Animated.sequence([
+      Animated.timing(scale, { toValue: scaleTo - 0.02, duration: 90, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 9 }),
+    ]).start();
+  };
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        pulse();
+        onPress?.();
+      }}
       disabled={disabled}
       hitSlop={hitSlop}
-      onPressIn={() => to(scaleTo)}
-      onPressOut={() => to(1)}
+      onPressIn={down}
+      onPressOut={up}
       style={style}
     >
       <Animated.View style={{ transform: [{ scale }] }}>{children}</Animated.View>

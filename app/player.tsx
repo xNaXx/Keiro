@@ -13,7 +13,8 @@ import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES, RADII } from '../src/theme';
 import { MOODS, VOICES } from '../src/data';
 import { hasElevenLabsKey } from '../src/services/elevenlabs';
-import { speakLine, startAmbient, stopAmbient, stopSpeech } from '../src/services/demoAudio';
+import { fadeOutAmbient, renderAmbientWav, speakLine, startAmbient, stopAmbient, stopSpeech } from '../src/services/demoAudio';
+import { Brand } from '../src/components/KeiroLogo';
 
 function fmt(sec: number) {
   const m = Math.floor(sec / 60);
@@ -78,6 +79,12 @@ export default function PlayerScreen() {
     };
   }, [demo, playing, done]);
 
+  // the session never ends abruptly: the pad dissolves over the last seconds
+  const remaining = durationSec - elapsed;
+  useEffect(() => {
+    if (demo && playing && !done && remaining <= 9 && remaining > 0) fadeOutAmbient(remaining);
+  }, [demo, playing, done, remaining]);
+
   const currentLine = useMemo(() => {
     if (!meditation) return null;
     const passed = meditation.lines.filter((l) => l.at <= elapsed);
@@ -120,16 +127,16 @@ export default function PlayerScreen() {
     toggleDownload(meditation.id);
     if (Platform.OS !== 'web' || meditation.downloaded) return;
     try {
-      let blob: Blob;
+      let blob: Blob | null;
       let name: string;
       if (meditation.audioUri) {
         blob = await (await fetch(meditation.audioUri)).blob();
-        name = `${meditation.title}.mp3`;
+        name = `Keiro — ${meditation.title}.mp3`;
       } else {
-        const text = `Keiro — ${meditation.title}\n\n${meditation.lines.map((l) => l.text).join('\n\n')}`;
-        blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-        name = `${meditation.title}.txt`;
+        blob = await renderAmbientWav(meditation.durationSec);
+        name = `Keiro — ${meditation.title} (ambiente demo).wav`;
       }
+      if (!blob) return;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -189,7 +196,7 @@ export default function PlayerScreen() {
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.header}>
           <BackButton />
-          <Sparkle size={18} color={palette.text} twinkle />
+          <Brand color={palette.text} />
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <ThemeToggle />
             <Tap onPress={downloadFile} hitSlop={6} scaleTo={0.88}>
@@ -212,8 +219,8 @@ export default function PlayerScreen() {
           <AuroraFigure
             pose={meditation.config.mood === 'sadness' ? 'bowed' : 'gazing'}
             colors={mp.figure}
-            width={360}
-            height={380}
+            width={420}
+            height={420}
           />
         </View>
 

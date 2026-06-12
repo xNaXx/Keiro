@@ -6,6 +6,7 @@ import { GradientBackground } from '../../src/components/GradientBackground';
 import { GlassCard, HeaderActions, MicroLabel, Tap } from '../../src/components/UI';
 import { PathTrail } from '../../src/components/PathTrail';
 import { Sparkle } from '../../src/components/Sparkle';
+import { Brand } from '../../src/components/KeiroLogo';
 import { Play, Plus } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
 import { FONTS } from '../../src/theme';
@@ -29,7 +30,8 @@ export default function HomeScreen() {
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <View style={{ width: 98 }} />
-            <View style={{ alignItems: 'center' }}>
+            <View style={{ alignItems: 'center', gap: 4 }}>
+              <Brand color={palette.text} />
               <Text style={[styles.hello, { color: palette.text }]}>
                 {t('hello')} {user?.name?.split(' ')[0] ?? ''},
               </Text>
@@ -111,7 +113,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 16,
   },
-  hello: { fontFamily: FONTS.sansMedium, fontSize: 18 },
+  hello: { fontFamily: FONTS.sansMedium, fontSize: 17, marginTop: 2 },
   day: { fontFamily: FONTS.sans, fontSize: 13, marginTop: 3 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40, gap: 18 },
   question: { fontFamily: FONTS.sans, fontSize: 30, lineHeight: 40, textAlign: 'center' },

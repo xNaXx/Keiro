@@ -2,17 +2,22 @@ import { Platform } from 'react-native';
 import { Language } from '../i18n';
 
 /**
- * Demo-mode audio, web only. Until real ElevenLabs keys are connected the
- * player still needs to *sound* like something: a soft ambient pad generated
- * with the Web Audio API, plus the browser's speech synthesis reading the
- * meditation lines. The browser voice is a placeholder — the production path
- * (src/services/elevenlabs.ts) replaces it with natural human voices.
+ * Demo-mode audio, web only. Until real keys are connected the player still
+ * needs to *sound* like something: a soft ambient pad generated with the
+ * Web Audio API, plus the browser's speech synthesis reading the meditation.
+ *
+ * The pad ducks under the voice and swells back in the silences. For the
+ * production build the plan is Suno (or licensed stems) for music and
+ * ElevenLabs for narration — see src/services/suno.ts and elevenlabs.ts.
  */
 
 const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
 
+const LEVEL_FULL = 0.04;
+const LEVEL_DUCKED = 0.012;
+
 let ctx: AudioContext | null = null;
-let ambientNodes: { osc: OscillatorNode[]; gain: GainNode } | null = null;
+let ambient: { nodes: AudioNode[]; gain: GainNode } | null = null;
 
 function audioCtx(): AudioContext | null {
   if (!isWeb) return null;
@@ -23,28 +28,24 @@ function audioCtx(): AudioContext | null {
   return ctx;
 }
 
-/** Gentle two-note pad with a slow shimmer. Volume stays far in the back. */
-export function startAmbient() {
-  const ac = audioCtx();
-  if (!ac || ambientNodes) return;
-
+/** Build the pad into any BaseAudioContext (live or offline render). */
+function buildPad(ac: BaseAudioContext, destination: AudioNode, durationSec?: number) {
   const gain = ac.createGain();
-  gain.gain.value = 0;
-  gain.gain.linearRampToValueAtTime(0.035, ac.currentTime + 4);
-
   const filter = ac.createBiquadFilter();
   filter.type = 'lowpass';
   filter.frequency.value = 600;
 
   const freqs = [110, 164.81, 220, 329.63]; // A2, E3, A3, E4 — an open, calm fifth
-  const oscs = freqs.map((f, i) => {
+  const nodes: AudioNode[] = [];
+  freqs.forEach((f, i) => {
     const osc = ac.createOscillator();
     osc.type = i % 2 ? 'sine' : 'triangle';
     osc.frequency.value = f;
     osc.detune.value = (i - 1.5) * 3;
     osc.connect(filter);
     osc.start();
-    return osc;
+    if (durationSec) osc.stop(durationSec);
+    nodes.push(osc);
   });
 
   // slow breathing of the pad
@@ -55,19 +56,53 @@ export function startAmbient() {
   lfo.connect(lfoGain);
   lfoGain.connect(gain.gain);
   lfo.start();
-  oscs.push(lfo);
+  if (durationSec) lfo.stop(durationSec);
+  nodes.push(lfo);
 
   filter.connect(gain);
-  gain.connect(ac.destination);
-  ambientNodes = { osc: oscs, gain };
+  gain.connect(destination);
+  return { nodes, gain };
+}
+
+export function startAmbient() {
+  const ac = audioCtx();
+  if (!ac || ambient) return;
+  ambient = buildPad(ac, ac.destination);
+  ambient.gain.gain.value = 0;
+  // soft fade in — nothing in Keiro starts abruptly
+  ambient.gain.gain.linearRampToValueAtTime(LEVEL_FULL, ac.currentTime + 5);
+}
+
+/** Glide the pad toward a level (used for ducking under the voice). */
+function rampAmbient(level: number, seconds: number) {
+  if (!ambient || !ctx) return;
+  const g = ambient.gain.gain;
+  g.cancelScheduledValues(ctx.currentTime);
+  g.setValueAtTime(g.value, ctx.currentTime);
+  g.linearRampToValueAtTime(level, ctx.currentTime + seconds);
+}
+
+/** Long goodbye for the end of a session. */
+export function fadeOutAmbient(seconds = 8) {
+  rampAmbient(0.0001, seconds);
 }
 
 export function stopAmbient() {
-  if (!ambientNodes || !ctx) return;
-  const { osc, gain } = ambientNodes;
-  ambientNodes = null;
+  if (!ambient || !ctx) return;
+  const { nodes, gain } = ambient;
+  ambient = null;
+  gain.gain.cancelScheduledValues(ctx.currentTime);
+  gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
   gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.2);
-  setTimeout(() => osc.forEach((o) => { try { o.stop(); } catch {} }), 1400);
+  setTimeout(
+    () =>
+      nodes.forEach((n) => {
+        try {
+          (n as OscillatorNode).stop();
+        } catch {}
+      }),
+    1400
+  );
 }
 
 function pickBrowserVoice(lang: Language, gender: 'female' | 'male'): SpeechSynthesisVoice | null {
@@ -82,7 +117,10 @@ function pickBrowserVoice(lang: Language, gender: 'female' | 'male'): SpeechSynt
   return hinted ?? candidates[0];
 }
 
-/** Speak one meditation line with the browser's TTS (demo placeholder). */
+/**
+ * Speak one meditation line. The pad ducks while the voice speaks and
+ * swells back gradually once it goes quiet.
+ */
 export function speakLine(text: string, lang: Language, gender: 'female' | 'male' = 'female') {
   if (!isWeb || !('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
@@ -93,6 +131,9 @@ export function speakLine(text: string, lang: Language, gender: 'female' | 'male
   u.volume = 0.95;
   const voice = pickBrowserVoice(lang, gender);
   if (voice) u.voice = voice;
+  u.onstart = () => rampAmbient(LEVEL_DUCKED, 0.7);
+  u.onend = () => rampAmbient(LEVEL_FULL, 3);
+  u.onerror = () => rampAmbient(LEVEL_FULL, 3);
   window.speechSynthesis.speak(u);
 }
 
@@ -111,4 +152,45 @@ export function speakSample(lang: Language, gender: 'female' | 'male') {
 
 export function demoAudioAvailable(): boolean {
   return isWeb && 'speechSynthesis' in window;
+}
+
+/**
+ * Render the ambient soundscape to a downloadable WAV (demo offline file).
+ * With an ElevenLabs key connected the download is the real narrated mp3
+ * instead — this is the fallback so "save offline" always yields audio.
+ */
+export async function renderAmbientWav(durationSec: number): Promise<Blob | null> {
+  if (!isWeb || typeof OfflineAudioContext === 'undefined') return null;
+  const rate = 22050;
+  const total = Math.max(10, Math.round(durationSec));
+  const oac = new OfflineAudioContext(1, rate * total, rate);
+  const { gain } = buildPad(oac, oac.destination, total);
+  gain.gain.setValueAtTime(0, 0);
+  gain.gain.linearRampToValueAtTime(0.35, 6); // louder than live: it plays alone
+  gain.gain.setValueAtTime(0.35, Math.max(6, total - 10));
+  gain.gain.linearRampToValueAtTime(0, total); // gentle fade out, never abrupt
+  const buf = await oac.startRendering();
+
+  // PCM 16-bit WAV encoding
+  const samples = buf.getChannelData(0);
+  const data = new DataView(new ArrayBuffer(44 + samples.length * 2));
+  const writeStr = (o: number, s: string) => [...s].forEach((c, i) => data.setUint8(o + i, c.charCodeAt(0)));
+  writeStr(0, 'RIFF');
+  data.setUint32(4, 36 + samples.length * 2, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  data.setUint32(16, 16, true);
+  data.setUint16(20, 1, true);
+  data.setUint16(22, 1, true);
+  data.setUint32(24, rate, true);
+  data.setUint32(28, rate * 2, true);
+  data.setUint16(32, 2, true);
+  data.setUint16(34, 16, true);
+  writeStr(36, 'data');
+  data.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    data.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+  return new Blob([data.buffer], { type: 'audio/wav' });
 }

@@ -7,6 +7,7 @@ import { GradientBackground } from '../../src/components/GradientBackground';
 import { GlassCard, HeaderActions, MicroLabel, PrimaryButton, Tap } from '../../src/components/UI';
 import { Camera, Logout, Pencil } from '../../src/components/Icons';
 import { PathTrail } from '../../src/components/PathTrail';
+import { Brand } from '../../src/components/KeiroLogo';
 import { useApp } from '../../src/store';
 import { FONTS, RADII } from '../../src/theme';
 
@@ -52,7 +53,7 @@ export default function ProfileScreen() {
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <View style={{ width: 98 }} />
-            <MicroLabel>{t('tab_profile').toLowerCase()}</MicroLabel>
+            <Brand color={palette.text} />
             <HeaderActions />
           </View>
 
