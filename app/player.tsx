@@ -69,8 +69,9 @@ function VolumeSlider({
         onResponderGrant={set}
         onResponderMove={set}
       >
-        <View style={{ height: 1.5, borderRadius: 1, backgroundColor: palette.textFaint, opacity: 0.7 }} />
+        <View pointerEvents="none" style={{ height: 1.5, borderRadius: 1, backgroundColor: palette.textFaint, opacity: 0.7 }} />
         <View
+          pointerEvents="none"
           style={{
             position: 'absolute',
             left: 0,
@@ -392,21 +393,6 @@ export default function PlayerScreen() {
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <ThemeToggle />
             <SettingsButton />
-            <View style={plan === 'free' ? { opacity: 0.45 } : undefined}>
-              <Tap onPress={downloadFile} hitSlop={6} scaleTo={0.88}>
-                <BlurView
-                  intensity={24}
-                  tint={palette.name === 'dark' ? 'dark' : 'light'}
-                  style={[styles.iconBtn, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}
-                >
-                  {meditation.downloaded ? (
-                    <Check color={palette.accent} size={19} />
-                  ) : (
-                    <Download color={palette.text} size={19} />
-                  )}
-                </BlurView>
-              </Tap>
-            </View>
           </View>
         </View>
 

@@ -11,6 +11,7 @@ import {
 import { AppProvider, useApp } from '../src/store';
 import { registerThemeFade } from '../src/themeFade';
 import { UpgradeModal } from '../src/components/UpgradeModal';
+import { ErrorBoundary } from '../src/components/ErrorBoundary';
 
 // Routes where the meditation owns the audio — the menu bed must be silent.
 const SILENT_ROUTES = ['/player', '/create/generating', '/create/ad'];
@@ -72,8 +73,10 @@ export default function Layout() {
   });
   if (!loaded) return <View style={{ flex: 1, backgroundColor: '#0b1026' }} />;
   return (
-    <AppProvider>
-      <Root />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <Root />
+      </AppProvider>
+    </ErrorBoundary>
   );
 }

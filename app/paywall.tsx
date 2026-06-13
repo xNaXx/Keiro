@@ -23,7 +23,9 @@ export default function Paywall() {
 
   const subscribe = () => {
     setPlan('premium');
-    router.back();
+    // On native, router.back() throws when the stack is empty; web tolerates it.
+    if (router.canGoBack()) router.back();
+    else router.replace('/home');
   };
 
   const PlanCard = ({ id, label, price, badge }: { id: 'monthly' | 'yearly'; label: string; price: string; badge?: string }) => {
