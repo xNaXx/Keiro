@@ -86,7 +86,7 @@ function seamlessLoop(src, out) {
   ff([
     '-i', win,
     '-filter_complex',
-    `[0:a]atrim=0:${CROSS},asetpts=N/SR/TB[a1];[0:a]atrim=${CROSS},asetpts=N/SR/TB[a2];[a2][a1]acrossfade=d=${CROSS}:c1=tri:c2=tri[out]`,
+    `[0:a]asplit=2[h][t];[h]atrim=0:${CROSS},asetpts=N/SR/TB[a1];[t]atrim=${CROSS},asetpts=N/SR/TB[a2];[a2][a1]acrossfade=d=${CROSS}:c1=tri:c2=tri[out]`,
     '-map', '[out]', '-ac', '2', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '128k', out,
   ]);
 }
