@@ -31,14 +31,16 @@ const VOICES = {
   mateo: { id: 'ErXwobaYiN019PkySvjV', gender: 'male' },
 };
 
-// Calm, slow, even delivery for meditation: high stability (less variation),
-// no stylistic exaggeration, and speed well below 1 so the voice is unhurried.
+// Calm, even delivery for meditation. The slow, unhurried feel comes mostly
+// from the long silences between phrases (BREAK), not from dragging each word:
+// speed stays close to natural (0.9) so the voice never sounds artificially
+// slowed. High stability keeps the tone steady; no stylistic exaggeration.
 const VOICE_SETTINGS = {
-  stability: 0.6,
-  similarity_boost: 0.75,
+  stability: 0.65,
+  similarity_boost: 0.8,
   style: 0.0,
   use_speaker_boost: true,
-  speed: 0.75,
+  speed: 0.9,
 };
 
 const MEDITATIONS = [
