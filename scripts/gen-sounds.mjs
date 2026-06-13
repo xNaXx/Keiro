@@ -71,7 +71,7 @@ async function download(previewUrl, file) {
 
 /** Decode tolerantly into a clean wav so the loop step never trips on bad frames. */
 function toCleanWav(src, out) {
-  ff(['-err_detect', 'ignore_err', '-i', src, '-ac', '2', '-ar', '44100', out]);
+  ff(['-err_detect', 'ignore_err', '-fflags', '+discardcorrupt', '-i', src, '-ac', '2', '-ar', '44100', out]);
   return out;
 }
 
@@ -79,6 +79,7 @@ function toCleanWav(src, out) {
 function seamlessLoop(src, out) {
   const clean = toCleanWav(src, path.join(TMP, 'clean.wav'));
   const total = dur(clean);
+  if (!(total > CROSS + 4)) throw new Error(`audio decodificado demasiado corto (${total}s)`);
   const window = Math.min(WINDOW, Math.max(8, total - 1));
   const start = Math.min(5, Math.max(0, total - window - 1)); // skip the first seconds
   const win = path.join(TMP, 'win.wav');
@@ -98,14 +99,19 @@ function seamlessLoop(src, out) {
     try {
       process.stdout.write(`${s.key}: buscando "${s.query}"… `);
       const results = await search(s.query);
-      const pick = results.find((r) => r.previews && r.previews['preview-hq-mp3'] && r.duration >= 20);
+      const pick = results.find(
+        (r) => r.previews && (r.previews['preview-hq-ogg'] || r.previews['preview-hq-mp3']) && r.duration >= 20
+      );
       if (!pick) {
         console.log('sin resultados CC0 utilizables, omitido');
         continue;
       }
       process.stdout.write(`#${pick.id} "${pick.name}" `);
-      const raw = path.join(TMP, `${s.key}-raw.mp3`);
-      await download(pick.previews['preview-hq-mp3'], raw);
+      // OGG previews decode far more reliably in ffmpeg than the mp3 ones
+      const previewUrl = pick.previews['preview-hq-ogg'] || pick.previews['preview-hq-mp3'];
+      const ext = previewUrl.includes('.ogg') ? 'ogg' : 'mp3';
+      const raw = path.join(TMP, `${s.key}-raw.${ext}`);
+      await download(previewUrl, raw);
       const out = path.join(OUT_DIR, `${s.key}.mp3`);
       seamlessLoop(raw, out);
       catalog.push({
