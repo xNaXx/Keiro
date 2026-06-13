@@ -35,9 +35,13 @@ const SOUNDS = [
   { key: 'wind', name: { es: 'Viento', en: 'Wind' }, query: 'calm wind breeze trees', tint: '#cfd8f4' },
   { key: 'fire', name: { es: 'Fuego', en: 'Fire' }, query: 'fire crackling campfire loop', tint: '#e8842c' },
   { key: 'bowls', name: { es: 'Cuencos', en: 'Bowls' }, query: 'tibetan singing bowl resonance drone', tint: '#e8c531' },
-  { key: 'pad', name: { es: 'Aura', en: 'Pad' }, query: 'ambient pad drone meditation calm warm', tint: '#a18ae6' },
-  { key: 'chimes', name: { es: 'Campanas', en: 'Chimes' }, query: 'wind chimes gentle metal soft', tint: '#67d4b8' },
+  { key: 'pad', name: { es: 'Aura', en: 'Pad' }, query: 'warm ambient music pad soft texture loop calm', tint: '#a18ae6' },
+  { key: 'drone', name: { es: 'Drone', en: 'Drone' }, query: 'meditation ambient drone harmonic soft sustained', tint: '#b56fa8' },
+  { key: 'chimes', name: { es: 'Campanas', en: 'Chimes' }, query: 'wind chimes gentle soft', tint: '#67d4b8' },
 ];
+
+// Keys whose existing file should be regenerated even if present.
+const FORCE = new Set(['pad']);
 
 const ff = (args) => execFileSync('ffmpeg', ['-y', '-hide_banner', ...args], { stdio: ['ignore', 'pipe', 'inherit'] });
 function dur(file) {
@@ -94,8 +98,22 @@ function seamlessLoop(src, out) {
 
 (async () => {
   fs.mkdirSync(OUT_DIR, { recursive: true });
+  // keep entries for sounds we don't regenerate this run
+  let existing = {};
+  try {
+    existing = Object.fromEntries(
+      JSON.parse(fs.readFileSync(path.join(OUT_DIR, 'catalog.json'), 'utf8')).map((e) => [e.key, e])
+    );
+  } catch {}
+
   const catalog = [];
   for (const s of SOUNDS) {
+    const filePath = path.join(OUT_DIR, `${s.key}.mp3`);
+    if (!FORCE.has(s.key) && fs.existsSync(filePath) && existing[s.key]) {
+      catalog.push(existing[s.key]); // preserve a sound we already like
+      console.log(`${s.key}: ya existe, conservado`);
+      continue;
+    }
     try {
       process.stdout.write(`${s.key}: buscando "${s.query}"… `);
       const results = await search(s.query);
@@ -112,7 +130,7 @@ function seamlessLoop(src, out) {
       const ext = previewUrl.includes('.ogg') ? 'ogg' : 'mp3';
       const raw = path.join(TMP, `${s.key}-raw.${ext}`);
       await download(previewUrl, raw);
-      const out = path.join(OUT_DIR, `${s.key}.mp3`);
+      const out = filePath;
       seamlessLoop(raw, out);
       catalog.push({
         key: s.key,
@@ -125,6 +143,7 @@ function seamlessLoop(src, out) {
       console.log(`  ✓ loop ${Math.round(dur(out))}s por ${pick.username}`);
     } catch (e) {
       console.log(`  ✗ ${s.key} falló: ${e.message}`);
+      if (existing[s.key]) catalog.push(existing[s.key]); // fall back to the old one
     }
   }
   fs.writeFileSync(path.join(OUT_DIR, 'catalog.json'), JSON.stringify(catalog, null, 2));
