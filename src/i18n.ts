@@ -58,6 +58,7 @@ const dict: Dict = {
   home_quote_1: { es: 'El sendero se hace al andar.', en: 'The path is made by walking.' },
   sample_label: { es: 'meditaciones de muestra', en: 'sample meditations' },
   sample_real_voice: { es: 'voz real · ElevenLabs', en: 'real voice · ElevenLabs' },
+  mix_label: { es: 'mezcla', en: 'mix' },
 
   // tabs
   tab_home: { es: 'Inicio', en: 'Home' },
