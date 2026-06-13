@@ -1,7 +1,8 @@
 [
   {
-    "id": "calm-lua-es",
-    "voice": "lua",
+    "id": "calm-belen-es",
+    "voice": "belen",
+    "voiceName": "Belén",
     "gender": "female",
     "mood": "calm",
     "lang": "es",
@@ -10,7 +11,7 @@
       "en": "Cool water"
     },
     "durationSec": 59,
-    "file": "calm-lua-es.mp3",
+    "file": "calm-belen-es.mp3",
     "lines": [
       {
         "at": 0,
@@ -33,7 +34,7 @@
         "text": "La calma no se busca: se recuerda. Ya vive en ti, esperando."
       },
       {
-        "at": 29,
+        "at": 28,
         "text": "Saborea este silencio como quien bebe agua fresca en mitad del camino."
       },
       {
@@ -45,14 +46,15 @@
         "text": "Deja que la quietud se extienda, suave, desde el pecho hasta las manos."
       },
       {
-        "at": 48,
+        "at": 50,
         "text": "Cuando quieras, vuelve poco a poco. Lleva esta calma contigo."
       }
     ]
   },
   {
-    "id": "calm-mateo-es",
-    "voice": "mateo",
+    "id": "calm-victor-es",
+    "voice": "victor",
+    "voiceName": "Víctor",
     "gender": "male",
     "mood": "calm",
     "lang": "es",
@@ -60,27 +62,27 @@
       "es": "El camino sereno",
       "en": "The serene path"
     },
-    "durationSec": 51,
-    "file": "calm-mateo-es.mp3",
+    "durationSec": 49,
+    "file": "calm-victor-es.mp3",
     "lines": [
       {
         "at": 0,
         "text": "Detente un momento. El camino puede esperar."
       },
       {
-        "at": 5,
+        "at": 4,
         "text": "Siente el peso de tu cuerpo, sostenido, sin esfuerzo."
       },
       {
-        "at": 9,
+        "at": 10,
         "text": "Toma aire profundamente… siente cómo se expande tu pecho… y exhala."
       },
       {
-        "at": 15,
+        "at": 16,
         "text": "No hay nada que perseguir en este instante. Solo respirar."
       },
       {
-        "at": 20,
+        "at": 21,
         "text": "Imagina un sendero que se abre ante ti, tranquilo, sin final a la vista."
       },
       {
