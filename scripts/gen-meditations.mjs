@@ -32,7 +32,12 @@ if (!API_KEY) {
 const VOICES = {
   belen: { id: 'KDG2CWzkFgcZz4Vqbu8m', gender: 'female', name: 'Belén' },
   victor: { id: 'Ypjv4S8CWJLMvXfBMUtN', gender: 'male', name: 'Víctor' },
+  eve: { id: 'afA8uNBCZodsqVasDDsc', gender: 'female', name: 'Eve' },
+  steve: { id: 'HJlUPggR4CCkl0gC427J', gender: 'male', name: 'Steve' },
 };
+
+// Only regenerate these ids; existing files are kept untouched.
+const FORCE = new Set([]);
 
 // v3 "Natural" stability keeps the voice steady while still honouring the tags.
 const VOICE_SETTINGS = { stability: 0.5, similarity_boost: 0.8, use_speaker_boost: true };
@@ -77,6 +82,42 @@ const MEDITATIONS = [
       '[softly] Suelta los hombros… afloja la mandíbula… deja caer lo que pesa.',
       '[gently] Aquí, en este silencio… no falta nada.',
       '[whispers] Poco a poco, regresa… el sendero seguirá aquí, siempre que lo necesites.',
+    ],
+  },
+  {
+    id: 'calm-eve-en',
+    voice: 'eve',
+    mood: 'calm',
+    lang: 'en',
+    title: { es: 'Agua fresca', en: 'Cool water' },
+    lines: [
+      "[calmly] Welcome to this moment. There's no hurry here… nothing to solve.",
+      '[softly] Close your eyes, if you like… and let your body settle where it is.',
+      '[calmly] Breathe in slowly through your nose… and let the air go, very gently.',
+      '[gently] With every exhale… the ground holds you a little more.',
+      "[serene] Calm isn't something you chase… it's something you remember. It already lives in you.",
+      '[softly] Savor this silence… like cool water in the middle of the path.',
+      "[calmly] You don't have to go anywhere. You're already here… and here is enough.",
+      '[gently] Let the stillness spread, soft… from your chest to your hands.',
+      "[whispers] When you're ready, return slowly… carry this calm with you.",
+    ],
+  },
+  {
+    id: 'calm-steve-en',
+    voice: 'steve',
+    mood: 'calm',
+    lang: 'en',
+    title: { es: 'El camino sereno', en: 'The serene path' },
+    lines: [
+      '[calmly] Pause for a moment. The road can wait.',
+      '[serene] Feel the weight of your body… held, without effort.',
+      '[calmly] Take a deep breath in… feel your chest expand… and release.',
+      "[gently] There's nothing to chase in this instant… only to breathe.",
+      '[serene] Imagine a path opening before you… calm, with no end in sight.',
+      '[calmly] Each breath is one more step… toward your own stillness.',
+      '[softly] Drop your shoulders… soften your jaw… let go of what weighs on you.',
+      '[gently] Here, in this silence… nothing is missing.',
+      "[whispers] Slowly, come back… the path will still be here, whenever you need it.",
     ],
   },
 ];
@@ -171,8 +212,21 @@ async function build(m) {
 
 (async () => {
   fs.mkdirSync(OUT_DIR, { recursive: true });
+  let existing = {};
+  try {
+    existing = Object.fromEntries(
+      JSON.parse(fs.readFileSync(path.join(OUT_DIR, 'catalog.json'), 'utf8')).map((e) => [e.id, e])
+    );
+  } catch {}
+
   const catalog = [];
   for (const m of MEDITATIONS) {
+    const filePath = path.join(OUT_DIR, `${m.id}.mp3`);
+    if (!FORCE.has(m.id) && fs.existsSync(filePath) && existing[m.id]) {
+      catalog.push(existing[m.id]); // keep a meditation we already generated
+      console.log(`${m.id}: ya existe, conservado`);
+      continue;
+    }
     console.log(`Generando ${m.id} (${m.voice})…`);
     const entry = await build(m);
     catalog.push(entry);
