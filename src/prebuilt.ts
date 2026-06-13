@@ -13,6 +13,7 @@ import { Language } from './i18n';
 export interface PrebuiltEntry {
   id: string;
   voice: string;
+  voiceName: string;
   gender: 'male' | 'female';
   mood: string;
   lang: Language;
@@ -24,10 +25,12 @@ export interface PrebuiltEntry {
 
 export const PREBUILT_CATALOG = catalog as PrebuiltEntry[];
 
+export type PrebuiltMeditation = Meditation & { voiceName: string };
+
 // Static requires so Metro bundles each clip; map by id.
 const AUDIO: Record<string, any> = {
-  'calm-lua-es': require('../assets/meditations/calm-lua-es.mp3'),
-  'calm-mateo-es': require('../assets/meditations/calm-mateo-es.mp3'),
+  'calm-belen-es': require('../assets/meditations/calm-belen-es.mp3'),
+  'calm-victor-es': require('../assets/meditations/calm-victor-es.mp3'),
 };
 
 /** Resolve a bundled audio module to a playable URI (web string, native asset). */
@@ -43,7 +46,7 @@ function audioUri(id: string): string {
   }
 }
 
-function toMeditation(e: PrebuiltEntry, language: Language): Meditation {
+function toMeditation(e: PrebuiltEntry, language: Language): PrebuiltMeditation {
   const config: SessionConfig = {
     mood: e.mood,
     moment: 'evening',
@@ -58,6 +61,7 @@ function toMeditation(e: PrebuiltEntry, language: Language): Meditation {
   return {
     id: e.id,
     title: e.title[language] ?? e.title.es,
+    voiceName: e.voiceName,
     config,
     lines: e.lines,
     durationSec: e.durationSec,
@@ -68,12 +72,12 @@ function toMeditation(e: PrebuiltEntry, language: Language): Meditation {
 }
 
 /** All pre-generated meditations, titles localized. */
-export function getPrebuilt(language: Language): Meditation[] {
+export function getPrebuilt(language: Language): PrebuiltMeditation[] {
   return PREBUILT_CATALOG.map((e) => toMeditation(e, language));
 }
 
 /** Look one up by id (used by the player when it isn't in the user's sessions). */
-export function findPrebuilt(id: string, language: Language): Meditation | undefined {
+export function findPrebuilt(id: string, language: Language): PrebuiltMeditation | undefined {
   const e = PREBUILT_CATALOG.find((x) => x.id === id);
   return e ? toMeditation(e, language) : undefined;
 }

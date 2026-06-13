@@ -10,7 +10,7 @@ import { Float } from '../components/Motion';
 import { Play, Plus, VoiceWave } from '../components/Icons';
 import { useApp } from '../store';
 import { FONTS } from '../theme';
-import { MOODS, VOICES, currentMoment } from '../data';
+import { MOODS, currentMoment } from '../data';
 import { getPrebuilt } from '../prebuilt';
 
 export function HomeView() {
@@ -118,31 +118,28 @@ export function HomeView() {
               <View style={{ alignItems: 'center', marginBottom: 12 }}>
                 <MicroLabel>{t('sample_label')}</MicroLabel>
               </View>
-              {samples.map((m) => {
-                const v = VOICES.find((x) => x.id === m.config.voiceId);
-                return (
-                  <GlassCard
-                    key={m.id}
-                    onPress={() => router.push({ pathname: '/player', params: { id: m.id } })}
-                    style={{ marginBottom: 12 }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-                      <View style={[styles.voiceOrb, { borderColor: palette.line }]}>
-                        <VoiceWave color={palette.text} size={20} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.sampleTitle, { color: palette.text }]} numberOfLines={1}>
-                          {m.title}
-                        </Text>
-                        <Text style={{ fontFamily: FONTS.sans, fontSize: 12, color: palette.textFaint, marginTop: 3 }}>
-                          {v?.name[language]} · {t('sample_real_voice')}
-                        </Text>
-                      </View>
-                      <Play color={palette.textSoft} size={16} />
+              {samples.map((m) => (
+                <GlassCard
+                  key={m.id}
+                  onPress={() => router.push({ pathname: '/player', params: { id: m.id } })}
+                  style={{ marginBottom: 12 }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                    <View style={[styles.voiceOrb, { borderColor: palette.line }]}>
+                      <VoiceWave color={palette.text} size={20} />
                     </View>
-                  </GlassCard>
-                );
-              })}
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.sampleTitle, { color: palette.text }]} numberOfLines={1}>
+                        {m.title}
+                      </Text>
+                      <Text style={{ fontFamily: FONTS.sans, fontSize: 12, color: palette.textFaint, marginTop: 3 }}>
+                        {m.voiceName} · {t('sample_real_voice')}
+                      </Text>
+                    </View>
+                    <Play color={palette.textSoft} size={16} />
+                  </View>
+                </GlassCard>
+              ))}
             </View>
           )}
         </ScrollView>
