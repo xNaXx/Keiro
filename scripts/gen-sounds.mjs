@@ -30,9 +30,13 @@ const CROSS = 4; // crossfade seconds at the loop seam (final loop ≈ WINDOW - 
 // What we want, with search queries. tint matches the app palette accents.
 const SOUNDS = [
   { key: 'water', name: { es: 'Agua', en: 'Water' }, query: 'water stream flowing gentle', tint: '#8fb4ef' },
-  { key: 'wind', name: { es: 'Viento', en: 'Wind' }, query: 'calm wind breeze trees', tint: '#cfd8f4' },
+  { key: 'rain', name: { es: 'Lluvia', en: 'Rain' }, query: 'gentle rain steady soft', tint: '#7fa8d8' },
   { key: 'waves', name: { es: 'Olas', en: 'Waves' }, query: 'ocean waves calm beach', tint: '#73bdb4' },
-  { key: 'rain', name: { es: 'Lluvia', en: 'Rain' }, query: 'gentle rain steady soft', tint: '#a18ae6' },
+  { key: 'wind', name: { es: 'Viento', en: 'Wind' }, query: 'calm wind breeze trees', tint: '#cfd8f4' },
+  { key: 'fire', name: { es: 'Fuego', en: 'Fire' }, query: 'fire crackling campfire loop', tint: '#e8842c' },
+  { key: 'bowls', name: { es: 'Cuencos', en: 'Bowls' }, query: 'tibetan singing bowl resonance drone', tint: '#e8c531' },
+  { key: 'pad', name: { es: 'Aura', en: 'Pad' }, query: 'ambient pad drone meditation calm warm', tint: '#a18ae6' },
+  { key: 'chimes', name: { es: 'Campanas', en: 'Chimes' }, query: 'wind chimes gentle metal soft', tint: '#67d4b8' },
 ];
 
 const ff = (args) => execFileSync('ffmpeg', ['-y', '-hide_banner', ...args], { stdio: ['ignore', 'pipe', 'inherit'] });
