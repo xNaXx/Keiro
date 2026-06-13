@@ -3,6 +3,7 @@ import { Animated, GestureResponderEvent, PanResponder, Platform, StyleSheet, Te
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
+import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
 import { GradientBackground } from '../src/components/GradientBackground';
 import { FigureBackdrop, FigureName } from '../src/components/FigureArt';
 import { RingFlower } from '../src/components/RingFlower';
@@ -158,16 +159,23 @@ export default function PlayerScreen() {
   const lineFade = useRef(new Animated.Value(0)).current;
   const waveWidth = useRef(1);
 
-  // Real ElevenLabs audio element (web only)
-  const htmlAudio = useRef<HTMLAudioElement | null>(null);
-  const [audioActive, setAudioActive] = useState(false);
+  // Real meditation voice via expo-audio (web + native). The source is keyed
+  // by uri, so swapping voice recreates the player; we then resume at elapsed.
+  const audioSource = useMemo(
+    () => (meditation?.audioUri ? { uri: meditation.audioUri } : null),
+    [meditation?.audioUri]
+  );
+  const player = useAudioPlayer(audioSource);
+  const status = useAudioPlayerStatus(player);
+  const pendingSeek = useRef<number | null>(null);
   const elapsedRef = useRef(0);
   useEffect(() => {
     elapsedRef.current = elapsed;
   }, [elapsed]);
 
-  const hasRealAudio = !!(meditation?.audioUri && Platform.OS === 'web');
+  const hasRealAudio = !!meditation?.audioUri;
   const demo = !hasRealAudio;
+  const audioActive = hasRealAudio && !!status?.playing;
   const dark = palette.name === 'dark';
   // tall artworks crop gracefully into the phone frame
   const figure: FigureName = dark ? 'profile-violet' : 'warm';
@@ -190,30 +198,52 @@ export default function PlayerScreen() {
     return () => clearInterval(iv);
   }, [playing, durationSec, done]);
 
-  // Real ElevenLabs audio: initialize once per audioUri
+  // Allow playback when the phone's silent switch is on (iOS); harmless on Android.
   useEffect(() => {
-    if (!hasRealAudio || Platform.OS !== 'web') return;
-    const audio = new (window as any).Audio(meditation!.audioUri) as HTMLAudioElement;
-    audio.volume = vols.voice;
-    // resume at the current position (so swapping voice mid-session is seamless)
-    const at = Math.min(elapsedRef.current, (meditation!.durationSec || 0) - 1);
-    if (at > 0) audio.currentTime = at;
-    audio.onplay = () => setAudioActive(true);
-    audio.onpause = () => setAudioActive(false);
-    audio.onended = () => { setAudioActive(false); fadeOutSoundscape(3); };
-    htmlAudio.current = audio;
-    if (playing) audio.play().catch(() => {});
-    return () => { audio.pause(); audio.src = ''; htmlAudio.current = null; };
-    // intentionally no vols/playing in deps — we sync those in separate effects
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [meditation?.audioUri]);
+    setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
+  }, []);
 
-  // Sync play/pause with real audio
+  // Player (re)created for a source: set volume, schedule a resume to the
+  // current position, and start if we're playing. Runs again on voice swap.
   useEffect(() => {
-    if (!htmlAudio.current) return;
-    if (playing && !done) htmlAudio.current.play().catch(() => {});
-    else htmlAudio.current.pause();
-  }, [playing, done]);
+    if (!hasRealAudio) return;
+    try {
+      player.volume = vols.voice;
+      const at = Math.min(elapsedRef.current, (meditation?.durationSec ?? 1) - 1);
+      pendingSeek.current = at > 0 ? at : null;
+      if (playing) player.play();
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [player, hasRealAudio]);
+
+  // Once the (new) source is loaded, apply any pending resume seek.
+  useEffect(() => {
+    if (!hasRealAudio || !status?.isLoaded || pendingSeek.current == null) return;
+    const at = pendingSeek.current;
+    pendingSeek.current = null;
+    try { player.seekTo(at).catch(() => {}); } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status?.isLoaded, hasRealAudio]);
+
+  // Keep the voice volume in sync with the mixer slider.
+  useEffect(() => {
+    if (!hasRealAudio) return;
+    try { player.volume = vols.voice; } catch {}
+  }, [vols.voice, player, hasRealAudio]);
+
+  // Sync play/pause with the voice.
+  useEffect(() => {
+    if (!hasRealAudio) return;
+    try {
+      if (playing && !done) player.play();
+      else player.pause();
+    } catch {}
+  }, [playing, done, player, hasRealAudio]);
+
+  // The voice reached its end on its own → let the soundscape dissolve.
+  useEffect(() => {
+    if (status?.didJustFinish) fadeOutSoundscape(3);
+  }, [status?.didJustFinish]);
 
   // Demo voice activity drives the orb
   useEffect(() => onSpeaking(setSpeaking), []);
@@ -295,11 +325,11 @@ export default function PlayerScreen() {
 
   const seekTo = useCallback((sec: number) => {
     const clamped = Math.min(Math.max(0, sec), durationSec);
-    if (htmlAudio.current) htmlAudio.current.currentTime = clamped;
+    if (hasRealAudio) { try { player.seekTo(clamped); } catch {} }
     stopSpeech();
     setElapsed(clamped);
     if (done && clamped < durationSec) setDone(false);
-  }, [durationSec, done]);
+  }, [durationSec, done, player, hasRealAudio]);
 
   const skip = (d: number) => seekTo(elapsed + d);
 
@@ -513,7 +543,7 @@ export default function PlayerScreen() {
               }
               value={vols.voice}
               onChange={(v) => {
-                if (htmlAudio.current) htmlAudio.current.volume = v;
+                if (hasRealAudio) { try { player.volume = v; } catch {} }
                 setVoiceVolume(v);
                 setVols({ ...vols, voice: v });
               }}
