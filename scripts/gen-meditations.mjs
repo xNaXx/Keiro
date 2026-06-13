@@ -25,10 +25,10 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-// ElevenLabs premade voices (must match src/data.ts).
+// Castilian (Spain) voices chosen from the shared library.
 const VOICES = {
-  lua: { id: '21m00Tcm4TlvDq8ikWAM', gender: 'female' },
-  mateo: { id: 'ErXwobaYiN019PkySvjV', gender: 'male' },
+  belen: { id: 'KDG2CWzkFgcZz4Vqbu8m', gender: 'female', name: 'Belén' },
+  victor: { id: 'Ypjv4S8CWJLMvXfBMUtN', gender: 'male', name: 'Víctor' },
 };
 
 // Calm, even delivery for meditation. The slow, unhurried feel comes mostly
@@ -45,8 +45,8 @@ const VOICE_SETTINGS = {
 
 const MEDITATIONS = [
   {
-    id: 'calm-lua-es',
-    voice: 'lua',
+    id: 'calm-belen-es',
+    voice: 'belen',
     mood: 'calm',
     lang: 'es',
     title: { es: 'Agua fresca', en: 'Cool water' },
@@ -63,8 +63,8 @@ const MEDITATIONS = [
     ],
   },
   {
-    id: 'calm-mateo-es',
-    voice: 'mateo',
+    id: 'calm-victor-es',
+    voice: 'victor',
     mood: 'calm',
     lang: 'es',
     title: { es: 'El camino sereno', en: 'The serene path' },
@@ -138,6 +138,7 @@ async function synth(m) {
   return {
     id: m.id,
     voice: m.voice,
+    voiceName: v.name,
     gender: v.gender,
     mood: m.mood,
     lang: m.lang,
