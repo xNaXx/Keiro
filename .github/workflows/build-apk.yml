@@ -1,0 +1,24 @@
+name: Build Android APK (EAS)
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install EAS CLI
+        run: npm i -g eas-cli
+      - name: Link/ensure EAS project
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas init --non-interactive --force
+      - name: Build APK (preview)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        # waits for the cloud build and prints the downloadable .apk URL at the end
+        run: eas build --platform android --profile preview --non-interactive
