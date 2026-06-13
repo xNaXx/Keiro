@@ -1,0 +1,104 @@
+[
+  {
+    "id": "calm-lua-es",
+    "voice": "lua",
+    "gender": "female",
+    "mood": "calm",
+    "lang": "es",
+    "title": {
+      "es": "Agua fresca",
+      "en": "Cool water"
+    },
+    "durationSec": 59,
+    "file": "calm-lua-es.mp3",
+    "lines": [
+      {
+        "at": 0,
+        "text": "Bienvenida a este momento. Aquí no hay prisa, ni nada que resolver."
+      },
+      {
+        "at": 6,
+        "text": "Cierra los ojos, si te apetece, y deja que el cuerpo se asiente donde está."
+      },
+      {
+        "at": 12,
+        "text": "Respira hondo por la nariz… y suelta el aire muy despacio."
+      },
+      {
+        "at": 17,
+        "text": "Con cada exhalación, el suelo te sostiene un poco más."
+      },
+      {
+        "at": 22,
+        "text": "La calma no se busca: se recuerda. Ya vive en ti, esperando."
+      },
+      {
+        "at": 29,
+        "text": "Saborea este silencio como quien bebe agua fresca en mitad del camino."
+      },
+      {
+        "at": 34,
+        "text": "No tienes que ir a ninguna parte. Ya estás aquí, y aquí es suficiente."
+      },
+      {
+        "at": 40,
+        "text": "Deja que la quietud se extienda, suave, desde el pecho hasta las manos."
+      },
+      {
+        "at": 48,
+        "text": "Cuando quieras, vuelve poco a poco. Lleva esta calma contigo."
+      }
+    ]
+  },
+  {
+    "id": "calm-mateo-es",
+    "voice": "mateo",
+    "gender": "male",
+    "mood": "calm",
+    "lang": "es",
+    "title": {
+      "es": "El camino sereno",
+      "en": "The serene path"
+    },
+    "durationSec": 51,
+    "file": "calm-mateo-es.mp3",
+    "lines": [
+      {
+        "at": 0,
+        "text": "Detente un momento. El camino puede esperar."
+      },
+      {
+        "at": 5,
+        "text": "Siente el peso de tu cuerpo, sostenido, sin esfuerzo."
+      },
+      {
+        "at": 9,
+        "text": "Toma aire profundamente… siente cómo se expande tu pecho… y exhala."
+      },
+      {
+        "at": 15,
+        "text": "No hay nada que perseguir en este instante. Solo respirar."
+      },
+      {
+        "at": 20,
+        "text": "Imagina un sendero que se abre ante ti, tranquilo, sin final a la vista."
+      },
+      {
+        "at": 26,
+        "text": "Cada respiración es un paso más hacia tu propia calma."
+      },
+      {
+        "at": 30,
+        "text": "Suelta los hombros. Afloja la mandíbula. Deja caer lo que pesa."
+      },
+      {
+        "at": 35,
+        "text": "Aquí, en este silencio, no falta nada."
+      },
+      {
+        "at": 39,
+        "text": "Poco a poco, regresa. El sendero seguirá aquí, siempre que lo necesites."
+      }
+    ]
+  }
+]
