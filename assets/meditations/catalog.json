@@ -10,44 +10,44 @@
       "es": "Agua fresca",
       "en": "Cool water"
     },
-    "durationSec": 59,
+    "durationSec": 95,
     "file": "calm-belen-es.mp3",
     "lines": [
       {
-        "at": 0,
-        "text": "Bienvenida a este momento. Aquí no hay prisa, ni nada que resolver."
+        "at": 2,
+        "text": "Bienvenida a este momento. Aquí no hay prisa… ni nada que resolver."
       },
       {
-        "at": 6,
-        "text": "Cierra los ojos, si te apetece, y deja que el cuerpo se asiente donde está."
-      },
-      {
-        "at": 12,
-        "text": "Respira hondo por la nariz… y suelta el aire muy despacio."
-      },
-      {
-        "at": 17,
-        "text": "Con cada exhalación, el suelo te sostiene un poco más."
+        "at": 11,
+        "text": "Cierra los ojos, si te apetece… y deja que el cuerpo se asiente donde está."
       },
       {
         "at": 22,
-        "text": "La calma no se busca: se recuerda. Ya vive en ti, esperando."
+        "text": "Respira hondo por la nariz… y suelta el aire muy despacio."
       },
       {
-        "at": 28,
-        "text": "Saborea este silencio como quien bebe agua fresca en mitad del camino."
+        "at": 32,
+        "text": "Con cada exhalación… el suelo te sostiene un poco más."
       },
       {
-        "at": 34,
-        "text": "No tienes que ir a ninguna parte. Ya estás aquí, y aquí es suficiente."
+        "at": 43,
+        "text": "La calma no se busca… se recuerda. Ya vive en ti, esperando."
       },
       {
-        "at": 40,
-        "text": "Deja que la quietud se extienda, suave, desde el pecho hasta las manos."
+        "at": 52,
+        "text": "Saborea este silencio… como quien bebe agua fresca en mitad del camino."
       },
       {
-        "at": 50,
-        "text": "Cuando quieras, vuelve poco a poco. Lleva esta calma contigo."
+        "at": 62,
+        "text": "No tienes que ir a ninguna parte. Ya estás aquí… y aquí es suficiente."
+      },
+      {
+        "at": 72,
+        "text": "Deja que la quietud se extienda, suave… desde el pecho hasta las manos."
+      },
+      {
+        "at": 83,
+        "text": "Cuando quieras, vuelve poco a poco… lleva esta calma contigo."
       }
     ]
   },
@@ -62,44 +62,44 @@
       "es": "El camino sereno",
       "en": "The serene path"
     },
-    "durationSec": 49,
+    "durationSec": 90,
     "file": "calm-victor-es.mp3",
     "lines": [
       {
-        "at": 0,
+        "at": 2,
         "text": "Detente un momento. El camino puede esperar."
       },
       {
-        "at": 4,
-        "text": "Siente el peso de tu cuerpo, sostenido, sin esfuerzo."
+        "at": 9,
+        "text": "Siente el peso de tu cuerpo… sostenido, sin esfuerzo."
       },
       {
-        "at": 10,
+        "at": 19,
         "text": "Toma aire profundamente… siente cómo se expande tu pecho… y exhala."
       },
       {
-        "at": 16,
-        "text": "No hay nada que perseguir en este instante. Solo respirar."
-      },
-      {
-        "at": 21,
-        "text": "Imagina un sendero que se abre ante ti, tranquilo, sin final a la vista."
-      },
-      {
-        "at": 26,
-        "text": "Cada respiración es un paso más hacia tu propia calma."
-      },
-      {
         "at": 30,
-        "text": "Suelta los hombros. Afloja la mandíbula. Deja caer lo que pesa."
-      },
-      {
-        "at": 35,
-        "text": "Aquí, en este silencio, no falta nada."
+        "text": "No hay nada que perseguir en este instante… solo respirar."
       },
       {
         "at": 39,
-        "text": "Poco a poco, regresa. El sendero seguirá aquí, siempre que lo necesites."
+        "text": "Imagina un sendero que se abre ante ti… tranquilo, sin final a la vista."
+      },
+      {
+        "at": 49,
+        "text": "Cada respiración es un paso más… hacia tu propia calma."
+      },
+      {
+        "at": 58,
+        "text": "Suelta los hombros… afloja la mandíbula… deja caer lo que pesa."
+      },
+      {
+        "at": 70,
+        "text": "Aquí, en este silencio… no falta nada."
+      },
+      {
+        "at": 78,
+        "text": "Poco a poco, regresa… el sendero seguirá aquí, siempre que lo necesites."
       }
     ]
   }
