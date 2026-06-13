@@ -8,7 +8,7 @@ import { FigureBackdrop, FigureName } from '../src/components/FigureArt';
 import { RingFlower } from '../src/components/RingFlower';
 import { Sparkle } from '../src/components/Sparkle';
 import { BackButton, MicroLabel, PrimaryButton, SettingsButton, Tap, ThemeToggle } from '../src/components/UI';
-import { Aura, Bowl, Check, ChimesIcon, Download, Drop, Equalizer, Flame, MusicNote, Pause, Play, RainCloud, SkipBack, SkipFwd, VoiceWave, WavesIcon, WindIcon } from '../src/components/Icons';
+import { Aura, Bowl, Check, ChevronDown, ChimesIcon, Download, Drop, Flame, MusicNote, Pause, Play, RainCloud, SkipBack, SkipFwd, VoiceWave, WavesIcon, WindIcon } from '../src/components/Icons';
 
 /** Pictogram per ambient layer (keyed by catalog key). */
 const SOUND_ICON: Record<string, (p: { size?: number; color?: string }) => React.ReactElement> = {
@@ -24,11 +24,11 @@ const SOUND_ICON: Record<string, (p: { size?: number; color?: string }) => React
 import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES, RADII } from '../src/theme';
 import { MOODS, VOICES } from '../src/data';
-import { findPrebuilt } from '../src/prebuilt';
+import { findPrebuilt, findSiblingVoice } from '../src/prebuilt';
 import { SOUNDS } from '../src/sounds';
 import { hasElevenLabsKey } from '../src/services/elevenlabs';
 import { getVolumes, onSpeaking, renderAmbientWav, setVoiceVolume, speakLine, stopSpeech } from '../src/services/demoAudio';
-import { fadeOutSoundscape, getMix, setLayer, setSoundscapeVolume, startSoundscape, stopSoundscape } from '../src/services/soundscape';
+import { fadeOutSoundscape, getMix, setAura, setLayer, setSoundscapeVolume, startSoundscape, stopSoundscape } from '../src/services/soundscape';
 import { VoiceOrb } from '../src/components/VoiceOrb';
 import { Brand } from '../src/components/KeiroLogo';
 
@@ -44,22 +44,25 @@ function VolumeSlider({
   value,
   onChange,
   palette,
+  thumbColor,
 }: {
   icon: React.ReactNode;
   value: number;
   onChange: (v: number) => void;
   palette: any;
+  thumbColor?: string;
 }) {
   const w = useRef(1);
   const set = (e: GestureResponderEvent) => {
     const v = Math.min(1, Math.max(0, e.nativeEvent.locationX / w.current));
     onChange(v);
   };
+  const thumb = thumbColor ?? palette.text;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
       {icon}
       <View
-        style={{ flex: 1, height: 26, justifyContent: 'center' }}
+        style={{ flex: 1, height: 18, justifyContent: 'center' }}
         onLayout={(e) => (w.current = e.nativeEvent.layout.width)}
         onStartShouldSetResponder={() => true}
         onMoveShouldSetResponder={() => true}
@@ -74,7 +77,7 @@ function VolumeSlider({
             width: `${value * 100}%`,
             height: 1.5,
             borderRadius: 1,
-            backgroundColor: palette.line,
+            backgroundColor: thumb,
           }}
         />
         <View
@@ -82,11 +85,11 @@ function VolumeSlider({
           style={{
             position: 'absolute',
             left: `${value * 100}%`,
-            marginLeft: -6,
-            width: 12,
-            height: 12,
-            borderRadius: 6,
-            backgroundColor: palette.line,
+            marginLeft: -4.5,
+            width: 9,
+            height: 9,
+            borderRadius: 4.5,
+            backgroundColor: thumb,
           }}
         />
       </View>
@@ -132,7 +135,11 @@ export default function PlayerScreen() {
   const { t, palette, sessions, toggleDownload, language, plan, showUpgrade } = useApp();
   const router = useRouter();
 
-  const meditation = sessions.find((s) => s.id === id) ?? findPrebuilt(id ?? '', language);
+  // tapping the voice head swaps to the same meditation in the other voice
+  const [overrideId, setOverrideId] = useState<string | null>(null);
+  const activeId = overrideId ?? id;
+  const meditation = sessions.find((s) => s.id === activeId) ?? findPrebuilt(activeId ?? '', language);
+  const sibling = meditation ? findSiblingVoice(meditation.id, language) : null;
   const mood = MOODS.find((m) => m.id === meditation?.config.mood);
   const voice = VOICES.find((v) => v.id === meditation?.config.voiceId) ?? VOICES[0];
   const mp = MOOD_PALETTES[meditation?.config.mood ?? 'calm']?.[palette.name] ?? MOOD_PALETTES.calm[palette.name];
@@ -153,6 +160,10 @@ export default function PlayerScreen() {
   // Real ElevenLabs audio element (web only)
   const htmlAudio = useRef<HTMLAudioElement | null>(null);
   const [audioActive, setAudioActive] = useState(false);
+  const elapsedRef = useRef(0);
+  useEffect(() => {
+    elapsedRef.current = elapsed;
+  }, [elapsed]);
 
   const hasRealAudio = !!(meditation?.audioUri && Platform.OS === 'web');
   const demo = !hasRealAudio;
@@ -183,6 +194,9 @@ export default function PlayerScreen() {
     if (!hasRealAudio || Platform.OS !== 'web') return;
     const audio = new (window as any).Audio(meditation!.audioUri) as HTMLAudioElement;
     audio.volume = vols.voice;
+    // resume at the current position (so swapping voice mid-session is seamless)
+    const at = Math.min(elapsedRef.current, (meditation!.durationSec || 0) - 1);
+    if (at > 0) audio.currentTime = at;
     audio.onplay = () => setAudioActive(true);
     audio.onpause = () => setAudioActive(false);
     audio.onended = () => { setAudioActive(false); fadeOutSoundscape(3); };
@@ -205,6 +219,7 @@ export default function PlayerScreen() {
 
   const setSheet = (c: boolean) => {
     setCollapsed(c);
+    if (c) setMixOpen(false); // collapsing with the mixer open would push the sheet off-screen
     Animated.spring(sheetShift, {
       toValue: c ? 1 : 0,
       useNativeDriver: true,
@@ -278,6 +293,11 @@ export default function PlayerScreen() {
   }, [durationSec, done]);
 
   const skip = (d: number) => seekTo(elapsed + d);
+
+  // switch the same meditation to the other voice, keeping the playback position
+  const swapVoice = () => {
+    if (sibling) setOverrideId(sibling.id);
+  };
 
   const seekFromEvent = (e: GestureResponderEvent) => {
     const x = e.nativeEvent.locationX;
@@ -483,9 +503,20 @@ export default function PlayerScreen() {
             <Text style={[styles.time, { color: palette.textSoft }]}>{fmt(durationSec)}</Text>
           </View>
 
-          <View style={{ gap: 10, marginTop: 14, paddingHorizontal: 6 }}>
+          <View style={{ gap: 6, marginTop: 12, paddingHorizontal: 6 }}>
             <VolumeSlider
-              icon={<VoiceWave color={palette.textSoft} size={17} />}
+              icon={
+                sibling ? (
+                  <Tap onPress={swapVoice} hitSlop={8} scaleTo={0.82}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+                      <VoiceWave color={palette.text} size={17} />
+                      <Text style={{ fontFamily: FONTS.sans, fontSize: 11, color: palette.textFaint }}>⇄</Text>
+                    </View>
+                  </Tap>
+                ) : (
+                  <VoiceWave color={palette.textSoft} size={17} />
+                )
+              }
               value={vols.voice}
               onChange={(v) => {
                 if (htmlAudio.current) htmlAudio.current.volume = v;
@@ -493,9 +524,17 @@ export default function PlayerScreen() {
                 setVols({ ...vols, voice: v });
               }}
               palette={palette}
+              thumbColor={palette.text}
             />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <MusicNote color={palette.textSoft} size={17} />
+              <Tap onPress={() => setMixOpen((o) => !o)} hitSlop={8} scaleTo={0.85}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                  <MusicNote color={mixOpen ? palette.text : palette.textSoft} size={17} />
+                  <View style={{ transform: [{ rotate: mixOpen ? '180deg' : '0deg' }] }}>
+                    <ChevronDown color={palette.textFaint} size={12} />
+                  </View>
+                </View>
+              </Tap>
               <View style={{ flex: 1 }}>
                 <VolumeSlider
                   icon={null}
@@ -505,11 +544,9 @@ export default function PlayerScreen() {
                     setVols({ ...vols, music: v });
                   }}
                   palette={palette}
+                  thumbColor={palette.text}
                 />
               </View>
-              <Tap onPress={() => setMixOpen((o) => !o)} hitSlop={8} scaleTo={0.88}>
-                <Equalizer color={mixOpen ? palette.line : palette.textSoft} size={20} />
-              </Tap>
             </View>
           </View>
 
@@ -530,7 +567,7 @@ export default function PlayerScreen() {
                       scaleTo={0.85}
                     >
                       <View style={styles.mixIcon}>
-                        <Icon color={on ? s.tint : palette.textFaint} size={22} />
+                        <Icon color={on ? s.tint : palette.textFaint} size={21} />
                       </View>
                     </Tap>
                     <View style={{ flex: 1, opacity: on ? 1 : 0.45 }}>
@@ -542,11 +579,39 @@ export default function PlayerScreen() {
                           setMix(getMix());
                         }}
                         palette={palette}
+                        thumbColor={s.tint}
                       />
                     </View>
                   </View>
                 );
               })}
+              {/* synthesized melodic pad */}
+              <View style={styles.mixRow}>
+                <Tap
+                  onPress={() => {
+                    setAura(!mix.auraEnabled, mix.auraVol ?? 0.6);
+                    setMix(getMix());
+                  }}
+                  hitSlop={6}
+                  scaleTo={0.85}
+                >
+                  <View style={styles.mixIcon}>
+                    <Aura color={mix.auraEnabled ? '#b58af0' : palette.textFaint} size={21} />
+                  </View>
+                </Tap>
+                <View style={{ flex: 1, opacity: mix.auraEnabled ? 1 : 0.45 }}>
+                  <VolumeSlider
+                    icon={null}
+                    value={mix.auraVol ?? 0.6}
+                    onChange={(v) => {
+                      setAura(true, v);
+                      setMix(getMix());
+                    }}
+                    palette={palette}
+                    thumbColor={'#b58af0'}
+                  />
+                </View>
+              </View>
             </View>
           )}
 
@@ -612,9 +677,9 @@ const styles = StyleSheet.create({
   waveTouch: { flex: 1, paddingVertical: 8, justifyContent: 'center', cursor: 'pointer' } as any,
   wave: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 26 },
   time: { fontFamily: FONTS.sans, fontSize: 12 },
-  mixer: { marginTop: 12, paddingTop: 12, gap: 8, borderTopWidth: StyleSheet.hairlineWidth },
+  mixer: { marginTop: 8, paddingTop: 8, gap: 1, borderTopWidth: StyleSheet.hairlineWidth },
   mixRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  mixIcon: { width: 30, alignItems: 'center', justifyContent: 'center' },
+  mixIcon: { width: 30, height: 26, alignItems: 'center', justifyContent: 'center' },
   controls: { flexDirection: 'row', gap: 10, marginTop: 16 },
   tile: {
     height: 64,

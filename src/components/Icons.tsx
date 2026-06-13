@@ -192,6 +192,12 @@ export const Lock = (p: P) => (
   </D>
 );
 
+export const ChevronDown = (p: P) => (
+  <D {...p} strokeWidth={1.8}>
+    <Path d="M7 10 L12 15 L17 10" />
+  </D>
+);
+
 export const Equalizer = (p: P) => (
   <D {...p} strokeWidth={1.6}>
     <Line x1="6" y1="14" x2="6" y2="19" />

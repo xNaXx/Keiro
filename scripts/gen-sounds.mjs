@@ -35,13 +35,12 @@ const SOUNDS = [
   { key: 'wind', name: { es: 'Viento', en: 'Wind' }, query: 'calm wind breeze trees', tint: '#cfd8f4' },
   { key: 'fire', name: { es: 'Fuego', en: 'Fire' }, query: 'fire crackling campfire loop', tint: '#e8842c' },
   { key: 'bowls', name: { es: 'Cuencos', en: 'Bowls' }, query: 'tibetan singing bowl resonance drone', tint: '#e8c531' },
-  { key: 'pad', name: { es: 'Aura', en: 'Pad' }, query: 'warm ambient music pad soft texture loop calm', tint: '#a18ae6' },
-  { key: 'drone', name: { es: 'Drone', en: 'Drone' }, query: 'meditation ambient drone harmonic soft sustained', tint: '#b56fa8' },
   { key: 'chimes', name: { es: 'Campanas', en: 'Chimes' }, query: 'wind chimes gentle soft', tint: '#67d4b8' },
+  // melodic "Aura" pad is synthesized live in src/services/soundscape.ts (no file)
 ];
 
 // Keys whose existing file should be regenerated even if present.
-const FORCE = new Set(['pad']);
+const FORCE = new Set([]);
 
 const ff = (args) => execFileSync('ffmpeg', ['-y', '-hide_banner', ...args], { stdio: ['ignore', 'pipe', 'inherit'] });
 function dur(file) {
@@ -122,6 +121,7 @@ function seamlessLoop(src, out) {
       );
       if (!pick) {
         console.log('sin resultados CC0 utilizables, omitido');
+        if (existing[s.key]) catalog.push(existing[s.key]); // keep the old one if any
         continue;
       }
       process.stdout.write(`#${pick.id} "${pick.name}" `);

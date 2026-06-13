@@ -22,7 +22,7 @@ const AUDIO: Record<string, any> = {
   wind: require('../assets/sounds/wind.mp3'),
   fire: require('../assets/sounds/fire.mp3'),
   bowls: require('../assets/sounds/bowls.mp3'),
-  pad: require('../assets/sounds/pad.mp3'),
+  chimes: require('../assets/sounds/chimes.mp3'),
 };
 
 function audioUri(key: string): string {

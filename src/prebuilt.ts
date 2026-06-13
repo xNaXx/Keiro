@@ -81,3 +81,15 @@ export function findPrebuilt(id: string, language: Language): PrebuiltMeditation
   const e = PREBUILT_CATALOG.find((x) => x.id === id);
   return e ? toMeditation(e, language) : undefined;
 }
+
+/**
+ * The same meditation in the other voice/gender (same mood), if it exists —
+ * lets the player switch male↔female on the fly. Returns null when there is
+ * no sibling (e.g. a user-generated session).
+ */
+export function findSiblingVoice(id: string, language: Language): PrebuiltMeditation | null {
+  const cur = PREBUILT_CATALOG.find((x) => x.id === id);
+  if (!cur) return null;
+  const sib = PREBUILT_CATALOG.find((x) => x.mood === cur.mood && x.gender !== cur.gender);
+  return sib ? toMeditation(sib, language) : null;
+}

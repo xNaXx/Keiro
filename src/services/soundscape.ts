@@ -38,6 +38,13 @@ let hz: { osc: OscillatorNode; gain: GainNode; freq: number } | null = null;
 let hzFreq: number | null = null;
 let hzVol = 0.5;
 
+// "Aura": a synthesized warm melodic pad — a soft sustained chord that breathes.
+// Infinite by nature, so it never has a loop seam. Lives alongside the file
+// layers in the mixer.
+let aura: { nodes: AudioNode[]; out: GainNode } | null = null;
+let auraEnabled = false;
+let auraVol = 0.6;
+
 function audioCtx(): AudioContext | null {
   if (!isWeb) return null;
   const AC = window.AudioContext ?? (window as any).webkitAudioContext;
@@ -107,6 +114,7 @@ export async function startSoundscape(): Promise<void> {
       })
   );
   if (hzFreq != null) startHz();
+  if (auraEnabled) startAura();
 }
 
 /** Toggle / set the volume of one ambient layer in real time. */
@@ -168,6 +176,69 @@ export function setHz(freq: number | null, volume: number): void {
   if (hz) rampGain(hz.gain, hzVol * 0.25, 0.3);
 }
 
+function startAura() {
+  if (!ctx || !master || aura) return;
+  const out = ctx.createGain();
+  out.gain.value = 0;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 900;
+  const breath = ctx.createGain();
+  breath.gain.value = 1;
+  // an open, suspended-feeling chord (root, fifth, octave, high fifth)
+  const freqs = [130.81, 196.0, 261.63, 392.0];
+  const nodes: AudioNode[] = freqs.map((f, i) => {
+    const o = ctx!.createOscillator();
+    o.type = i % 2 ? 'sine' : 'triangle';
+    o.frequency.value = f;
+    o.detune.value = (i - 1.5) * 4;
+    o.connect(filter);
+    o.start();
+    return o;
+  });
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  lfo.frequency.value = 0.07;
+  lfoGain.gain.value = 0.22;
+  lfo.connect(lfoGain);
+  lfoGain.connect(breath.gain);
+  lfo.start();
+  nodes.push(lfo);
+  filter.connect(breath);
+  breath.connect(out);
+  out.connect(master);
+  rampGain(out, auraVol * 0.18, 2);
+  aura = { nodes, out };
+}
+
+function stopAura() {
+  if (!aura) return;
+  const a = aura;
+  aura = null;
+  rampGain(a.out, 0, 0.6);
+  setTimeout(() => {
+    a.nodes.forEach((n) => {
+      try {
+        (n as OscillatorNode).stop();
+      } catch {}
+    });
+    a.out.disconnect();
+  }, 800);
+}
+
+/** Toggle / set volume of the synthesized melodic pad. */
+export function setAura(enabled: boolean, volume: number): void {
+  auraVol = volume;
+  auraEnabled = enabled;
+  if (!audioCtx() || !running) return;
+  if (enabled) {
+    if (!aura) startAura();
+    else if (aura) rampGain(aura.out, auraVol * 0.18, 0.3);
+  } else {
+    stopAura();
+  }
+}
+
 function rampGain(g: GainNode, to: number, seconds: number) {
   if (!ctx) return;
   const p = g.gain as AudioParam & { cancelAndHoldAtTime?: (t: number) => void };
@@ -193,6 +264,7 @@ export function fadeOutSoundscape(seconds = 6): void {
 export function stopSoundscape(): void {
   running = false;
   layers.forEach(stopLayer);
+  stopAura();
   if (hz) {
     const old = hz;
     try {
@@ -212,6 +284,8 @@ export interface SoundscapeMix {
   layers: { key: string; enabled: boolean; volume: number }[];
   hzFreq: number | null;
   hzVol: number;
+  auraEnabled: boolean;
+  auraVol: number;
   master: number;
 }
 
@@ -220,6 +294,8 @@ export function getMix(): SoundscapeMix {
     layers: [...layers.values()].map((l) => ({ key: l.key, enabled: l.enabled, volume: l.volume })),
     hzFreq,
     hzVol,
+    auraEnabled,
+    auraVol,
     master: masterVol,
   };
 }
