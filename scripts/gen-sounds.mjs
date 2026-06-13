@@ -60,18 +60,29 @@ async function search(query) {
 }
 
 async function download(previewUrl, file) {
-  // previews are public CDN; the token header is harmless if present
-  const res = await fetch(previewUrl, { headers: { Authorization: `Token ${API_KEY}` } });
+  // previews are public CDN files — no auth header (it can break the response)
+  const res = await fetch(previewUrl);
   if (!res.ok) throw new Error(`download ${res.status}`);
-  fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
+  const buf = Buffer.from(await res.arrayBuffer());
+  fs.writeFileSync(file, buf);
+  console.log(`(${(buf.length / 1024).toFixed(0)} KB, ${res.headers.get('content-type')})`);
+  return file;
+}
+
+/** Decode tolerantly into a clean wav so the loop step never trips on bad frames. */
+function toCleanWav(src, out) {
+  ff(['-err_detect', 'ignore_err', '-i', src, '-ac', '2', '-ar', '44100', out]);
+  return out;
 }
 
 /** Make a seamless loop: rotate by CROSS and crossfade the wrap. */
 function seamlessLoop(src, out) {
-  const total = dur(src);
-  const start = Math.min(5, Math.max(0, total - WINDOW - 1)); // skip the first seconds
-  const win = path.join(TMP, 'win.mp3');
-  ff(['-ss', String(start), '-t', String(WINDOW), '-i', src, '-ac', '2', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '128k', win]);
+  const clean = toCleanWav(src, path.join(TMP, 'clean.wav'));
+  const total = dur(clean);
+  const window = Math.min(WINDOW, Math.max(8, total - 1));
+  const start = Math.min(5, Math.max(0, total - window - 1)); // skip the first seconds
+  const win = path.join(TMP, 'win.wav');
+  ff(['-ss', String(start), '-t', String(window), '-i', clean, '-ac', '2', '-ar', '44100', win]);
   ff([
     '-i', win,
     '-filter_complex',
@@ -84,26 +95,31 @@ function seamlessLoop(src, out) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const catalog = [];
   for (const s of SOUNDS) {
-    process.stdout.write(`${s.key}: buscando "${s.query}"… `);
-    const results = await search(s.query);
-    const pick = results.find((r) => r.previews && r.previews['preview-hq-mp3'] && r.duration >= 20);
-    if (!pick) {
-      console.log('sin resultados CC0 utilizables, omitido');
-      continue;
+    try {
+      process.stdout.write(`${s.key}: buscando "${s.query}"… `);
+      const results = await search(s.query);
+      const pick = results.find((r) => r.previews && r.previews['preview-hq-mp3'] && r.duration >= 20);
+      if (!pick) {
+        console.log('sin resultados CC0 utilizables, omitido');
+        continue;
+      }
+      process.stdout.write(`#${pick.id} "${pick.name}" `);
+      const raw = path.join(TMP, `${s.key}-raw.mp3`);
+      await download(pick.previews['preview-hq-mp3'], raw);
+      const out = path.join(OUT_DIR, `${s.key}.mp3`);
+      seamlessLoop(raw, out);
+      catalog.push({
+        key: s.key,
+        name: s.name,
+        tint: s.tint,
+        file: `${s.key}.mp3`,
+        loopSec: Math.round(dur(out)),
+        source: { freesoundId: pick.id, title: pick.name, author: pick.username, license: 'CC0' },
+      });
+      console.log(`  ✓ loop ${Math.round(dur(out))}s por ${pick.username}`);
+    } catch (e) {
+      console.log(`  ✗ ${s.key} falló: ${e.message}`);
     }
-    const raw = path.join(TMP, `${s.key}-raw.mp3`);
-    await download(pick.previews['preview-hq-mp3'], raw);
-    const out = path.join(OUT_DIR, `${s.key}.mp3`);
-    seamlessLoop(raw, out);
-    catalog.push({
-      key: s.key,
-      name: s.name,
-      tint: s.tint,
-      file: `${s.key}.mp3`,
-      loopSec: Math.round(dur(out)),
-      source: { freesoundId: pick.id, title: pick.name, author: pick.username, license: 'CC0' },
-    });
-    console.log(`ok · #${pick.id} "${pick.name}" por ${pick.username} (${Math.round(dur(out))}s)`);
   }
   fs.writeFileSync(path.join(OUT_DIR, 'catalog.json'), JSON.stringify(catalog, null, 2));
   console.log(`\nListo. ${catalog.length} sonidos en assets/sounds/`);
