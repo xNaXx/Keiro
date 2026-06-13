@@ -35,7 +35,7 @@ const SOUNDS = [
   { key: 'rain', name: { es: 'Lluvia', en: 'Rain' }, query: 'gentle rain steady soft', tint: '#a18ae6' },
 ];
 
-const ff = (args) => execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...args]);
+const ff = (args) => execFileSync('ffmpeg', ['-y', '-hide_banner', ...args], { stdio: ['ignore', 'pipe', 'inherit'] });
 function dur(file) {
   return parseFloat(
     execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file]).toString().trim()
@@ -69,27 +69,22 @@ async function download(previewUrl, file) {
   return file;
 }
 
-/** Decode tolerantly into a clean wav so the loop step never trips on bad frames. */
-function toCleanWav(src, out) {
-  ff(['-err_detect', 'ignore_err', '-fflags', '+discardcorrupt', '-i', src, '-ac', '2', '-ar', '44100', out]);
-  return out;
-}
-
-/** Make a seamless loop: rotate by CROSS and crossfade the wrap. */
+/** Make a seamless loop in a single ffmpeg pass: trim a window, then rotate by
+ * CROSS and crossfade the wrap so the loop point is inaudible. */
 function seamlessLoop(src, out) {
-  const clean = toCleanWav(src, path.join(TMP, 'clean.wav'));
-  const total = dur(clean);
-  if (!(total > CROSS + 4)) throw new Error(`audio decodificado demasiado corto (${total}s)`);
-  const window = Math.min(WINDOW, Math.max(8, total - 1));
-  const start = Math.min(5, Math.max(0, total - window - 1)); // skip the first seconds
-  const win = path.join(TMP, 'win.wav');
-  ff(['-ss', String(start), '-t', String(window), '-i', clean, '-ac', '2', '-ar', '44100', win]);
+  const tmpOut = path.join(TMP, 'loop.mp3');
   ff([
-    '-i', win,
+    '-i', src,
     '-filter_complex',
-    `[0:a]asplit=2[h][t];[h]atrim=0:${CROSS},asetpts=N/SR/TB[a1];[t]atrim=${CROSS},asetpts=N/SR/TB[a2];[a2][a1]acrossfade=d=${CROSS}:c1=tri:c2=tri[out]`,
-    '-map', '[out]', '-ac', '2', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '128k', out,
+    `[0:a]atrim=0:${WINDOW},asetpts=N/SR/TB,asplit=2[h][t];` +
+      `[h]atrim=0:${CROSS},asetpts=N/SR/TB[a1];` +
+      `[t]atrim=${CROSS},asetpts=N/SR/TB[a2];` +
+      `[a2][a1]acrossfade=d=${CROSS}:c1=tri:c2=tri[o]`,
+    '-map', '[o]', '-ac', '2', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '128k', tmpOut,
   ]);
+  const d = dur(tmpOut);
+  if (!(d > 5)) throw new Error(`loop vacío (${d}s)`);
+  fs.copyFileSync(tmpOut, out);
 }
 
 (async () => {
