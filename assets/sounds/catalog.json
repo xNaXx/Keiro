@@ -16,18 +16,18 @@
     }
   },
   {
-    "key": "wind",
+    "key": "rain",
     "name": {
-      "es": "Viento",
-      "en": "Wind"
+      "es": "Lluvia",
+      "en": "Rain"
     },
-    "tint": "#cfd8f4",
-    "file": "wind.mp3",
+    "tint": "#7fa8d8",
+    "file": "rain.mp3",
     "loopSec": 20,
     "source": {
-      "freesoundId": 544889,
-      "title": "Forest wind and birds",
-      "author": "Dr. Macak",
+      "freesoundId": 853565,
+      "title": "rain and drips",
+      "author": "hoshisato",
       "license": "CC0"
     }
   },
@@ -48,18 +48,66 @@
     }
   },
   {
-    "key": "rain",
+    "key": "wind",
     "name": {
-      "es": "Lluvia",
-      "en": "Rain"
+      "es": "Viento",
+      "en": "Wind"
     },
-    "tint": "#a18ae6",
-    "file": "rain.mp3",
+    "tint": "#cfd8f4",
+    "file": "wind.mp3",
     "loopSec": 20,
     "source": {
-      "freesoundId": 853565,
-      "title": "rain and drips",
-      "author": "hoshisato",
+      "freesoundId": 544889,
+      "title": "Forest wind and birds",
+      "author": "Dr. Macak",
+      "license": "CC0"
+    }
+  },
+  {
+    "key": "fire",
+    "name": {
+      "es": "Fuego",
+      "en": "Fire"
+    },
+    "tint": "#e8842c",
+    "file": "fire.mp3",
+    "loopSec": 20,
+    "source": {
+      "freesoundId": 729395,
+      "title": "Campfire 01",
+      "author": "HECKFRICKER",
+      "license": "CC0"
+    }
+  },
+  {
+    "key": "bowls",
+    "name": {
+      "es": "Cuencos",
+      "en": "Bowls"
+    },
+    "tint": "#e8c531",
+    "file": "bowls.mp3",
+    "loopSec": 20,
+    "source": {
+      "freesoundId": 697041,
+      "title": "Long Player - Singing Bowls Ensemble.wav",
+      "author": "Headphaze",
+      "license": "CC0"
+    }
+  },
+  {
+    "key": "pad",
+    "name": {
+      "es": "Aura",
+      "en": "Pad"
+    },
+    "tint": "#a18ae6",
+    "file": "pad.mp3",
+    "loopSec": 20,
+    "source": {
+      "freesoundId": 530217,
+      "title": "Do Robots Get Bored",
+      "author": "SondreDrakensson",
       "license": "CC0"
     }
   }
