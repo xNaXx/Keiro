@@ -1,23 +1,26 @@
-/* Pre-generates a handful of meditations with real ElevenLabs voices.
+/* Pre-generates meditations with the expressive Eleven v3 model.
  *
  *   ELEVENLABS_API_KEY=sk_xxx node scripts/gen-meditations.mjs
  *
- * For each entry it sends the curated script to ElevenLabs (with-timestamps),
- * writes an .mp3 into assets/meditations/, and records when every line is
- * actually spoken — so the on-screen text stays in sync with the real voice
- * instead of being spread evenly. The result is written to
- * assets/meditations/catalog.json, which src/prebuilt.ts consumes.
+ * Each line is synthesized separately with v3 audio tags ([calmly], [softly],
+ * [whispers]…) for a slow, warm delivery, then stitched together with ffmpeg
+ * inserting a long silence between phrases. This gives exact control over the
+ * meditation pacing (the calm comes from the silences, not from slowing the
+ * voice) and exact per-line timings — independent of v3's tag behaviour.
  *
- * Curated scripts keep cost to ElevenLabs only (no Claude call yet). This is
- * the n=2 seed of the pre-generated library: prove the voices sound right,
- * then scale the matrix later.
+ * Output: assets/meditations/<id>.mp3 + assets/meditations/catalog.json,
+ * consumed by src/prebuilt.ts. ffmpeg/ffprobe must be on PATH (they are on the
+ * GitHub Actions ubuntu runner).
  */
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
+import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.join(__dirname, '..', 'assets', 'meditations');
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'keiro-'));
 
 const API_KEY = process.env.ELEVENLABS_API_KEY;
 if (!API_KEY) {
@@ -31,17 +34,13 @@ const VOICES = {
   victor: { id: 'Ypjv4S8CWJLMvXfBMUtN', gender: 'male', name: 'Víctor' },
 };
 
-// Calm, even delivery for meditation. The slow, unhurried feel comes mostly
-// from the long silences between phrases (BREAK), not from dragging each word:
-// speed stays close to natural (0.9) so the voice never sounds artificially
-// slowed. High stability keeps the tone steady; no stylistic exaggeration.
-const VOICE_SETTINGS = {
-  stability: 0.65,
-  similarity_boost: 0.8,
-  style: 0.0,
-  use_speaker_boost: true,
-  speed: 0.9,
-};
+// v3 "Natural" stability keeps the voice steady while still honouring the tags.
+const VOICE_SETTINGS = { stability: 0.5, similarity_boost: 0.8, use_speaker_boost: true };
+
+// Pacing, in seconds.
+const LEAD_IN = 1.5; // silence before the first words
+const GAP = 4.5; // silence between phrases
+const TAIL = 4.0; // silence after the last phrase
 
 const MEDITATIONS = [
   {
@@ -51,15 +50,15 @@ const MEDITATIONS = [
     lang: 'es',
     title: { es: 'Agua fresca', en: 'Cool water' },
     lines: [
-      'Bienvenida a este momento. Aquí no hay prisa, ni nada que resolver.',
-      'Cierra los ojos, si te apetece, y deja que el cuerpo se asiente donde está.',
-      'Respira hondo por la nariz… y suelta el aire muy despacio.',
-      'Con cada exhalación, el suelo te sostiene un poco más.',
-      'La calma no se busca: se recuerda. Ya vive en ti, esperando.',
-      'Saborea este silencio como quien bebe agua fresca en mitad del camino.',
-      'No tienes que ir a ninguna parte. Ya estás aquí, y aquí es suficiente.',
-      'Deja que la quietud se extienda, suave, desde el pecho hasta las manos.',
-      'Cuando quieras, vuelve poco a poco. Lleva esta calma contigo.',
+      '[calmly] Bienvenida a este momento. Aquí no hay prisa… ni nada que resolver.',
+      '[softly] Cierra los ojos, si te apetece… y deja que el cuerpo se asiente donde está.',
+      '[calmly] Respira hondo por la nariz… y suelta el aire muy despacio.',
+      '[gently] Con cada exhalación… el suelo te sostiene un poco más.',
+      '[serene] La calma no se busca… se recuerda. Ya vive en ti, esperando.',
+      '[softly] Saborea este silencio… como quien bebe agua fresca en mitad del camino.',
+      '[calmly] No tienes que ir a ninguna parte. Ya estás aquí… y aquí es suficiente.',
+      '[gently] Deja que la quietud se extienda, suave… desde el pecho hasta las manos.',
+      '[whispers] Cuando quieras, vuelve poco a poco… lleva esta calma contigo.',
     ],
   },
   {
@@ -69,71 +68,85 @@ const MEDITATIONS = [
     lang: 'es',
     title: { es: 'El camino sereno', en: 'The serene path' },
     lines: [
-      'Detente un momento. El camino puede esperar.',
-      'Siente el peso de tu cuerpo, sostenido, sin esfuerzo.',
-      'Toma aire profundamente… siente cómo se expande tu pecho… y exhala.',
-      'No hay nada que perseguir en este instante. Solo respirar.',
-      'Imagina un sendero que se abre ante ti, tranquilo, sin final a la vista.',
-      'Cada respiración es un paso más hacia tu propia calma.',
-      'Suelta los hombros. Afloja la mandíbula. Deja caer lo que pesa.',
-      'Aquí, en este silencio, no falta nada.',
-      'Poco a poco, regresa. El sendero seguirá aquí, siempre que lo necesites.',
+      '[calmly] Detente un momento. El camino puede esperar.',
+      '[serene] Siente el peso de tu cuerpo… sostenido, sin esfuerzo.',
+      '[calmly] Toma aire profundamente… siente cómo se expande tu pecho… y exhala.',
+      '[gently] No hay nada que perseguir en este instante… solo respirar.',
+      '[serene] Imagina un sendero que se abre ante ti… tranquilo, sin final a la vista.',
+      '[calmly] Cada respiración es un paso más… hacia tu propia calma.',
+      '[softly] Suelta los hombros… afloja la mandíbula… deja caer lo que pesa.',
+      '[gently] Aquí, en este silencio… no falta nada.',
+      '[whispers] Poco a poco, regresa… el sendero seguirá aquí, siempre que lo necesites.',
     ],
   },
 ];
 
-// Long silences between phrases: the voice speaks roughly every 4–10 s.
-const BREAK = ' <break time="4.0s" /> ';
-
-/** Find the spoken start time (seconds) of each line from the char alignment. */
-function lineStartTimes(lines, alignment) {
-  if (!alignment) return null;
-  const chars = alignment.characters || [];
-  const starts = alignment.character_start_times_seconds || [];
-  const norm = (s) => s.toLowerCase().replace(/[^a-záéíóúñü0-9]/gi, '');
-
-  // normalized stream + map back to original char index
-  let normStream = '';
-  const idxMap = [];
-  for (let i = 0; i < chars.length; i++) {
-    const n = norm(chars[i]);
-    if (n) { normStream += n; for (let k = 0; k < n.length; k++) idxMap.push(i); }
-  }
-
-  let from = 0;
-  const ats = [];
-  for (const line of lines) {
-    const key = norm(line).slice(0, 14);
-    const pos = key ? normStream.indexOf(key, from) : -1;
-    if (pos >= 0) {
-      ats.push(Math.max(0, Math.round(starts[idxMap[pos]] || 0)));
-      from = pos + key.length;
-    } else {
-      ats.push(ats.length ? ats[ats.length - 1] + 3 : 0);
-    }
-  }
-  return ats;
+/** Remove the [audio tags] for the on-screen text. */
+function clean(text) {
+  return text.replace(/\[[^\]]*\]/g, '').replace(/\s+/g, ' ').trim();
 }
 
-async function synth(m) {
-  const v = VOICES[m.voice];
-  const text = m.lines.join(BREAK);
-  const url = `https://api.elevenlabs.io/v1/text-to-speech/${v.id}/with-timestamps?output_format=mp3_44100_128`;
+/** One v3 line → mp3 file. Returns the path. */
+async function synthLine(voiceId, text, file) {
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'xi-api-key': API_KEY },
-    body: JSON.stringify({ text, model_id: 'eleven_multilingual_v2', voice_settings: VOICE_SETTINGS }),
+    body: JSON.stringify({ text, model_id: 'eleven_v3', voice_settings: VOICE_SETTINGS }),
   });
-  if (!res.ok) throw new Error(`${m.id}: ElevenLabs ${res.status} ${await res.text()}`);
-  const data = await res.json();
+  if (!res.ok) throw new Error(`ElevenLabs ${res.status}: ${await res.text()}`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  fs.writeFileSync(file, buf);
+  return file;
+}
 
-  const mp3 = Buffer.from(data.audio_base64, 'base64');
-  fs.writeFileSync(path.join(OUT_DIR, `${m.id}.mp3`), mp3);
+const ff = (args) => execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...args]);
+function duration(file) {
+  const out = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file]);
+  return parseFloat(out.toString().trim());
+}
 
-  const align = data.normalized_alignment || data.alignment;
-  const ats = lineStartTimes(m.lines, align);
-  const endTimes = align?.character_end_times_seconds;
-  const durationSec = endTimes?.length ? Math.ceil(endTimes[endTimes.length - 1] + 4) : m.lines.length * 18;
+/** A normalized silence clip of `sec` seconds. */
+function silence(sec, file) {
+  ff(['-f', 'lavfi', '-i', `anullsrc=r=44100:cl=mono`, '-t', String(sec), '-c:a', 'libmp3lame', '-b:a', '128k', file]);
+  return file;
+}
+
+/** Normalize any clip to 44100/mono/128k so concat -c copy is safe. */
+function normalize(input, file) {
+  ff(['-i', input, '-ar', '44100', '-ac', '1', '-c:a', 'libmp3lame', '-b:a', '128k', file]);
+  return file;
+}
+
+async function build(m) {
+  const v = VOICES[m.voice];
+  const segments = []; // { file, isSpeech, lineIndex }
+  const lead = silence(LEAD_IN, path.join(TMP, `${m.id}-lead.mp3`));
+  segments.push({ file: lead });
+
+  for (let i = 0; i < m.lines.length; i++) {
+    process.stdout.write(`  línea ${i + 1}/${m.lines.length}… `);
+    const raw = await synthLine(v.id, m.lines[i], path.join(TMP, `${m.id}-${i}-raw.mp3`));
+    const norm = normalize(raw, path.join(TMP, `${m.id}-${i}.mp3`));
+    segments.push({ file: norm, isSpeech: true, lineIndex: i });
+    console.log('ok');
+    const gap = i === m.lines.length - 1 ? TAIL : GAP;
+    segments.push({ file: silence(gap, path.join(TMP, `${m.id}-gap-${i}.mp3`)) });
+  }
+
+  // exact line start times from cumulative segment durations
+  let t = 0;
+  const lineAt = [];
+  for (const seg of segments) {
+    if (seg.isSpeech) lineAt[seg.lineIndex] = Math.round(t);
+    t += duration(seg.file);
+  }
+
+  // concat everything (all clips share codec params → -c copy is safe)
+  const listFile = path.join(TMP, `${m.id}-list.txt`);
+  fs.writeFileSync(listFile, segments.map((s) => `file '${s.file}'`).join('\n'));
+  const outFile = path.join(OUT_DIR, `${m.id}.mp3`);
+  ff(['-f', 'concat', '-safe', '0', '-i', listFile, '-c', 'copy', outFile]);
 
   return {
     id: m.id,
@@ -143,9 +156,9 @@ async function synth(m) {
     mood: m.mood,
     lang: m.lang,
     title: m.title,
-    durationSec,
+    durationSec: Math.ceil(t),
     file: `${m.id}.mp3`,
-    lines: m.lines.map((text, i) => ({ at: ats ? ats[i] : i * 18, text })),
+    lines: m.lines.map((text, i) => ({ at: lineAt[i], text: clean(text) })),
   };
 }
 
@@ -153,11 +166,14 @@ async function synth(m) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const catalog = [];
   for (const m of MEDITATIONS) {
-    process.stdout.write(`Generando ${m.id} (${m.voice})… `);
-    const entry = await synth(m);
+    console.log(`Generando ${m.id} (${m.voice})…`);
+    const entry = await build(m);
     catalog.push(entry);
-    console.log(`ok · ${entry.durationSec}s · ${entry.lines.length} líneas`);
+    console.log(`  → ${entry.durationSec}s · ${entry.lines.length} líneas\n`);
   }
   fs.writeFileSync(path.join(OUT_DIR, 'catalog.json'), JSON.stringify(catalog, null, 2));
-  console.log(`\nListo. ${catalog.length} meditaciones en assets/meditations/`);
-})().catch((e) => { console.error(e); process.exit(1); });
+  console.log(`Listo. ${catalog.length} meditaciones en assets/meditations/`);
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
