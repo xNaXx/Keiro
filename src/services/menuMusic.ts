@@ -75,7 +75,12 @@ async function loadBowls(ac: AudioContext) {
   }
 }
 
+// The synthesized pad sounded eerie. Until a proper ambient track is supplied
+// (drop an mp3 at assets/menu-music.mp3 and flip this on), the menu stays silent.
+const USE_SYNTH_PAD = false;
+
 export async function startMenuMusic(): Promise<void> {
+  if (!USE_SYNTH_PAD) return;
   const ac = audioCtx();
   if (!ac || !master || running) return;
   running = true;

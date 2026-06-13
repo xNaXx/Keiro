@@ -1,6 +1,11 @@
-name: List Spanish voices (ElevenLabs)
+name: List voices (ElevenLabs)
 on:
   workflow_dispatch:
+    inputs:
+      lang:
+        description: Language code (es / en)
+        required: false
+        default: es
 jobs:
   list:
     runs-on: ubuntu-latest
@@ -9,7 +14,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: List Spain voices
+      - name: List voices
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          VLANG: ${{ inputs.lang }}
         run: node scripts/list-voices.mjs

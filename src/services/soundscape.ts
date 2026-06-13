@@ -308,8 +308,8 @@ export function playBell(): void {
     o.stop(now + 8);
   });
   out.gain.setValueAtTime(0.0001, now);
-  out.gain.linearRampToValueAtTime(0.5, now + 0.06);
-  out.gain.exponentialRampToValueAtTime(0.0006, now + 7);
+  out.gain.linearRampToValueAtTime(0.26, now + 0.08); // softer — a signal, not a scare
+  out.gain.exponentialRampToValueAtTime(0.0005, now + 7);
 }
 
 export interface SoundscapeMix {
