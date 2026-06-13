@@ -112,9 +112,15 @@ function silence(sec, file) {
   return file;
 }
 
-/** Normalize any clip to 44100/mono/128k so concat -c copy is safe. */
+/** Normalize a spoken clip to 44100/mono/128k and soften its edges: a tiny
+ * fade-in and a longer fade-out so phrase endings never cut abruptly. The
+ * end fade is done with reverse→fade-in→reverse so we don't need the length. */
 function normalize(input, file) {
-  ff(['-i', input, '-ar', '44100', '-ac', '1', '-c:a', 'libmp3lame', '-b:a', '128k', file]);
+  ff([
+    '-i', input,
+    '-af', 'afade=t=in:d=0.04,areverse,afade=t=in:d=0.28,areverse',
+    '-ar', '44100', '-ac', '1', '-c:a', 'libmp3lame', '-b:a', '128k', file,
+  ]);
   return file;
 }
 
@@ -142,11 +148,12 @@ async function build(m) {
     t += duration(seg.file);
   }
 
-  // concat everything (all clips share codec params → -c copy is safe)
+  // concat, re-encoding the whole thing (NOT -c copy): joining separate mp3
+  // streams with copy glitches at every boundary — that was the "clicking".
   const listFile = path.join(TMP, `${m.id}-list.txt`);
   fs.writeFileSync(listFile, segments.map((s) => `file '${s.file}'`).join('\n'));
   const outFile = path.join(OUT_DIR, `${m.id}.mp3`);
-  ff(['-f', 'concat', '-safe', '0', '-i', listFile, '-c', 'copy', outFile]);
+  ff(['-f', 'concat', '-safe', '0', '-i', listFile, '-ar', '44100', '-ac', '1', '-c:a', 'libmp3lame', '-b:a', '128k', outFile]);
 
   return {
     id: m.id,
