@@ -1,1 +1,66 @@
-[]
+[
+  {
+    "key": "water",
+    "name": {
+      "es": "Agua",
+      "en": "Water"
+    },
+    "tint": "#8fb4ef",
+    "file": "water.mp3",
+    "loopSec": 20,
+    "source": {
+      "freesoundId": 819768,
+      "title": "Small Brook Flowing Around Rocks",
+      "author": "pepasystem",
+      "license": "CC0"
+    }
+  },
+  {
+    "key": "wind",
+    "name": {
+      "es": "Viento",
+      "en": "Wind"
+    },
+    "tint": "#cfd8f4",
+    "file": "wind.mp3",
+    "loopSec": 20,
+    "source": {
+      "freesoundId": 544889,
+      "title": "Forest wind and birds",
+      "author": "Dr. Macak",
+      "license": "CC0"
+    }
+  },
+  {
+    "key": "waves",
+    "name": {
+      "es": "Olas",
+      "en": "Waves"
+    },
+    "tint": "#73bdb4",
+    "file": "waves.mp3",
+    "loopSec": 20,
+    "source": {
+      "freesoundId": 517945,
+      "title": "Ocean gentle waves on beach fizzing bubbles.wav",
+      "author": "jackmichaelking",
+      "license": "CC0"
+    }
+  },
+  {
+    "key": "rain",
+    "name": {
+      "es": "Lluvia",
+      "en": "Rain"
+    },
+    "tint": "#a18ae6",
+    "file": "rain.mp3",
+    "loopSec": 20,
+    "source": {
+      "freesoundId": 853565,
+      "title": "rain and drips",
+      "author": "hoshisato",
+      "license": "CC0"
+    }
+  }
+]
