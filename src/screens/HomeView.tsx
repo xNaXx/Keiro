@@ -7,10 +7,11 @@ import { PathTrail } from '../components/PathTrail';
 import { Sparkle } from '../components/Sparkle';
 import { Brand } from '../components/KeiroLogo';
 import { Float } from '../components/Motion';
-import { Play, Plus } from '../components/Icons';
+import { Play, Plus, VoiceWave } from '../components/Icons';
 import { useApp } from '../store';
 import { FONTS } from '../theme';
-import { MOODS, currentMoment } from '../data';
+import { MOODS, VOICES, currentMoment } from '../data';
+import { getPrebuilt } from '../prebuilt';
 
 export function HomeView() {
   const { t, palette, user, pathDay, sessions, language } = useApp();
@@ -39,6 +40,7 @@ export function HomeView() {
 
   const last = sessions[0];
   const lastMood = last ? MOODS.find((m) => m.id === last.config.mood) : null;
+  const samples = getPrebuilt(language);
 
   return (
     <>
@@ -110,6 +112,39 @@ export function HomeView() {
               </GlassCard>
             </View>
           )}
+
+          {samples.length > 0 && (
+            <View style={styles.samples}>
+              <View style={{ alignItems: 'center', marginBottom: 12 }}>
+                <MicroLabel>{t('sample_label')}</MicroLabel>
+              </View>
+              {samples.map((m) => {
+                const v = VOICES.find((x) => x.id === m.config.voiceId);
+                return (
+                  <GlassCard
+                    key={m.id}
+                    onPress={() => router.push({ pathname: '/player', params: { id: m.id } })}
+                    style={{ marginBottom: 12 }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                      <View style={[styles.voiceOrb, { borderColor: palette.line }]}>
+                        <VoiceWave color={palette.text} size={20} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.sampleTitle, { color: palette.text }]} numberOfLines={1}>
+                          {m.title}
+                        </Text>
+                        <Text style={{ fontFamily: FONTS.sans, fontSize: 12, color: palette.textFaint, marginTop: 3 }}>
+                          {v?.name[language]} · {t('sample_real_voice')}
+                        </Text>
+                      </View>
+                      <Play color={palette.textSoft} size={16} />
+                    </View>
+                  </GlassCard>
+                );
+              })}
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
     </>
@@ -149,4 +184,7 @@ const styles = StyleSheet.create({
   },
   cards: { flexDirection: 'row', gap: 14, paddingHorizontal: 24 },
   cardTitle: { fontFamily: FONTS.sansMedium, fontSize: 16, marginTop: 10, lineHeight: 22 },
+  samples: { paddingHorizontal: 24, marginTop: 24 },
+  voiceOrb: { width: 46, height: 46, borderRadius: 23, borderWidth: 0.8, alignItems: 'center', justifyContent: 'center' },
+  sampleTitle: { fontFamily: FONTS.sansMedium, fontSize: 15.5 },
 });

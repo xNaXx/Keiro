@@ -12,6 +12,7 @@ import { Check, Download, MusicNote, Pause, Play, SkipBack, SkipFwd, VoiceWave }
 import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES, RADII } from '../src/theme';
 import { MOODS, VOICES } from '../src/data';
+import { findPrebuilt } from '../src/prebuilt';
 import { hasElevenLabsKey } from '../src/services/elevenlabs';
 import { fadeOutAmbient, getVolumes, onSpeaking, renderAmbientWav, setMusicVolume, setVoiceVolume, speakLine, startAmbient, stopAmbient, stopSpeech } from '../src/services/demoAudio';
 import { VoiceOrb } from '../src/components/VoiceOrb';
@@ -117,7 +118,7 @@ export default function PlayerScreen() {
   const { t, palette, sessions, toggleDownload, language, plan, showUpgrade } = useApp();
   const router = useRouter();
 
-  const meditation = sessions.find((s) => s.id === id);
+  const meditation = sessions.find((s) => s.id === id) ?? findPrebuilt(id ?? '', language);
   const mood = MOODS.find((m) => m.id === meditation?.config.mood);
   const voice = VOICES.find((v) => v.id === meditation?.config.voiceId) ?? VOICES[0];
   const mp = MOOD_PALETTES[meditation?.config.mood ?? 'calm']?.[palette.name] ?? MOOD_PALETTES.calm[palette.name];
