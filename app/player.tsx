@@ -28,7 +28,7 @@ import { findPrebuilt, findSiblingVoice } from '../src/prebuilt';
 import { SOUNDS } from '../src/sounds';
 import { hasElevenLabsKey } from '../src/services/elevenlabs';
 import { getVolumes, onSpeaking, renderAmbientWav, setVoiceVolume, speakLine, stopSpeech } from '../src/services/demoAudio';
-import { fadeOutSoundscape, getMix, setAura, setLayer, setSoundscapeVolume, startSoundscape, stopSoundscape } from '../src/services/soundscape';
+import { fadeOutSoundscape, getMix, playBell, setAura, setLayer, setSoundscapeVolume, startSoundscape, stopSoundscape } from '../src/services/soundscape';
 import { VoiceOrb } from '../src/components/VoiceOrb';
 import { Brand } from '../src/components/KeiroLogo';
 
@@ -216,6 +216,14 @@ export default function PlayerScreen() {
 
   // Demo voice activity drives the orb
   useEffect(() => onSpeaking(setSpeaking), []);
+
+  // singing-bowl signal at the start of the session and when it completes
+  useEffect(() => {
+    playBell();
+  }, []);
+  useEffect(() => {
+    if (done) playBell();
+  }, [done]);
 
   const setSheet = (c: boolean) => {
     setCollapsed(c);

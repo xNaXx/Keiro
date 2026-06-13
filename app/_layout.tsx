@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Animated, StyleSheet, View } from 'react-native';
+import { startMenuMusic, stopMenuMusic } from '../src/services/menuMusic';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import {
   CormorantGaramond_500Medium,
@@ -11,9 +12,20 @@ import { AppProvider, useApp } from '../src/store';
 import { registerThemeFade } from '../src/themeFade';
 import { UpgradeModal } from '../src/components/UpgradeModal';
 
+// Routes where the meditation owns the audio — the menu bed must be silent.
+const SILENT_ROUTES = ['/player', '/create/generating', '/create/ad'];
+
 function Root() {
   const { palette, hydrated } = useApp();
+  const pathname = usePathname();
   const veil = useRef(new Animated.Value(0)).current;
+
+  // ambient menu music while browsing; stops once a meditation takes over
+  useEffect(() => {
+    if (SILENT_ROUTES.some((r) => pathname?.startsWith(r))) stopMenuMusic();
+    else startMenuMusic();
+  }, [pathname]);
+  useEffect(() => () => stopMenuMusic(), []);
   const [veilColor, setVeilColor] = React.useState(palette.bg[1]);
   const paletteRef = useRef(palette);
   paletteRef.current = palette;

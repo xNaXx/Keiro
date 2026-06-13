@@ -280,6 +280,38 @@ export function stopSoundscape(): void {
   }
 }
 
+/** A struck singing-bowl / gong — the start and end signal of a meditation.
+ * Inharmonic partials, soft mallet attack, long decay, plus a faintly detuned
+ * twin for the shimmer/beating. Routed to the output so it rings regardless of
+ * the music volume. */
+export function playBell(): void {
+  const ac = audioCtx();
+  if (!ac) return;
+  const now = ac.currentTime + 0.02;
+  const out = ac.createGain();
+  out.connect(ac.destination);
+  const base = 174;
+  [
+    { f: base, g: 1 },
+    { f: base * 2.76, g: 0.5 },
+    { f: base * 5.4, g: 0.22 },
+    { f: base * 1.005, g: 0.7 },
+  ].forEach((p) => {
+    const o = ac.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = p.f;
+    const g = ac.createGain();
+    g.gain.value = p.g;
+    o.connect(g);
+    g.connect(out);
+    o.start(now);
+    o.stop(now + 8);
+  });
+  out.gain.setValueAtTime(0.0001, now);
+  out.gain.linearRampToValueAtTime(0.5, now + 0.06);
+  out.gain.exponentialRampToValueAtTime(0.0006, now + 7);
+}
+
 export interface SoundscapeMix {
   layers: { key: string; enabled: boolean; volume: number }[];
   hzFreq: number | null;
