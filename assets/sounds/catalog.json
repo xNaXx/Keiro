@@ -96,18 +96,18 @@
     }
   },
   {
-    "key": "pad",
+    "key": "chimes",
     "name": {
-      "es": "Aura",
-      "en": "Pad"
+      "es": "Campanas",
+      "en": "Chimes"
     },
-    "tint": "#a18ae6",
-    "file": "pad.mp3",
+    "tint": "#67d4b8",
+    "file": "chimes.mp3",
     "loopSec": 20,
     "source": {
-      "freesoundId": 530217,
-      "title": "Do Robots Get Bored",
-      "author": "SondreDrakensson",
+      "freesoundId": 222893,
+      "title": "Wind Chimes 02.wav",
+      "author": "Adelantemos",
       "license": "CC0"
     }
   }
