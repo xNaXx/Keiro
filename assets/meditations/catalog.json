@@ -102,5 +102,109 @@
         "text": "Poco a poco, regresa… el sendero seguirá aquí, siempre que lo necesites."
       }
     ]
+  },
+  {
+    "id": "calm-eve-en",
+    "voice": "eve",
+    "voiceName": "Eve",
+    "gender": "female",
+    "mood": "calm",
+    "lang": "en",
+    "title": {
+      "es": "Agua fresca",
+      "en": "Cool water"
+    },
+    "durationSec": 96,
+    "file": "calm-eve-en.mp3",
+    "lines": [
+      {
+        "at": 2,
+        "text": "Welcome to this moment. There's no hurry here… nothing to solve."
+      },
+      {
+        "at": 13,
+        "text": "Close your eyes, if you like… and let your body settle where it is."
+      },
+      {
+        "at": 21,
+        "text": "Breathe in slowly through your nose… and let the air go, very gently."
+      },
+      {
+        "at": 33,
+        "text": "With every exhale… the ground holds you a little more."
+      },
+      {
+        "at": 43,
+        "text": "Calm isn't something you chase… it's something you remember. It already lives in you."
+      },
+      {
+        "at": 54,
+        "text": "Savor this silence… like cool water in the middle of the path."
+      },
+      {
+        "at": 63,
+        "text": "You don't have to go anywhere. You're already here… and here is enough."
+      },
+      {
+        "at": 74,
+        "text": "Let the stillness spread, soft… from your chest to your hands."
+      },
+      {
+        "at": 85,
+        "text": "When you're ready, return slowly… carry this calm with you."
+      }
+    ]
+  },
+  {
+    "id": "calm-steve-en",
+    "voice": "steve",
+    "voiceName": "Steve",
+    "gender": "male",
+    "mood": "calm",
+    "lang": "en",
+    "title": {
+      "es": "El camino sereno",
+      "en": "The serene path"
+    },
+    "durationSec": 96,
+    "file": "calm-steve-en.mp3",
+    "lines": [
+      {
+        "at": 2,
+        "text": "Pause for a moment. The road can wait."
+      },
+      {
+        "at": 10,
+        "text": "Feel the weight of your body… held, without effort."
+      },
+      {
+        "at": 20,
+        "text": "Take a deep breath in… feel your chest expand… and release."
+      },
+      {
+        "at": 31,
+        "text": "There's nothing to chase in this instant… only to breathe."
+      },
+      {
+        "at": 41,
+        "text": "Imagine a path opening before you… calm, with no end in sight."
+      },
+      {
+        "at": 52,
+        "text": "Each breath is one more step… toward your own stillness."
+      },
+      {
+        "at": 63,
+        "text": "Drop your shoulders… soften your jaw… let go of what weighs on you."
+      },
+      {
+        "at": 76,
+        "text": "Here, in this silence… nothing is missing."
+      },
+      {
+        "at": 85,
+        "text": "Slowly, come back… the path will still be here, whenever you need it."
+      }
+    ]
   }
 ]
