@@ -31,8 +31,15 @@ const VOICES = {
   mateo: { id: 'ErXwobaYiN019PkySvjV', gender: 'male' },
 };
 
-// "Serene" energy mapping, lifted from src/services/elevenlabs.ts.
-const SERENE = { stability: 0.75, similarity_boost: 0.75, style: 0.15, use_speaker_boost: true };
+// Calm, slow, even delivery for meditation: high stability (less variation),
+// no stylistic exaggeration, and speed well below 1 so the voice is unhurried.
+const VOICE_SETTINGS = {
+  stability: 0.6,
+  similarity_boost: 0.75,
+  style: 0.0,
+  use_speaker_boost: true,
+  speed: 0.75,
+};
 
 const MEDITATIONS = [
   {
@@ -73,7 +80,8 @@ const MEDITATIONS = [
   },
 ];
 
-const BREAK = ' <break time="2.8s" /> ';
+// Long silences between phrases: the voice speaks roughly every 4–10 s.
+const BREAK = ' <break time="4.0s" /> ';
 
 /** Find the spoken start time (seconds) of each line from the char alignment. */
 function lineStartTimes(lines, alignment) {
@@ -112,7 +120,7 @@ async function synth(m) {
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'xi-api-key': API_KEY },
-    body: JSON.stringify({ text, model_id: 'eleven_multilingual_v2', voice_settings: SERENE }),
+    body: JSON.stringify({ text, model_id: 'eleven_multilingual_v2', voice_settings: VOICE_SETTINGS }),
   });
   if (!res.ok) throw new Error(`${m.id}: ElevenLabs ${res.status} ${await res.text()}`);
   const data = await res.json();
