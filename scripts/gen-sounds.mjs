@@ -69,16 +69,17 @@ async function download(previewUrl, file) {
   return file;
 }
 
-/** Make a seamless loop in a single ffmpeg pass: trim a window, then rotate by
- * CROSS and crossfade the wrap so the loop point is inaudible. */
+/** Make a seamless loop: take window [CROSS..WINDOW] and crossfade its end with
+ * the source's first CROSS seconds, so the loop point lands on the same instant
+ * and is inaudible. The source is decoded twice (two -i) instead of asplit —
+ * acrossfade deadlocks ("no filtered frames") when both legs share one asplit. */
 function seamlessLoop(src, out) {
   const tmpOut = path.join(TMP, 'loop.mp3');
   ff([
-    '-i', src,
+    '-i', src, '-i', src,
     '-filter_complex',
-    `[0:a]atrim=0:${WINDOW},asetpts=N/SR/TB,asplit=2[h][t];` +
-      `[h]atrim=0:${CROSS},asetpts=N/SR/TB[a1];` +
-      `[t]atrim=${CROSS},asetpts=N/SR/TB[a2];` +
+    `[0:a]atrim=${CROSS}:${WINDOW},asetpts=N/SR/TB[a2];` +
+      `[1:a]atrim=0:${CROSS},asetpts=N/SR/TB[a1];` +
       `[a2][a1]acrossfade=d=${CROSS}:c1=tri:c2=tri[o]`,
     '-map', '[o]', '-ac', '2', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '128k', tmpOut,
   ]);
