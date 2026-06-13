@@ -192,6 +192,81 @@ export const Lock = (p: P) => (
   </D>
 );
 
+export const Equalizer = (p: P) => (
+  <D {...p} strokeWidth={1.6}>
+    <Line x1="6" y1="14" x2="6" y2="19" />
+    <Line x1="6" y1="5" x2="6" y2="10.5" />
+    <Line x1="12" y1="11.5" x2="12" y2="19" />
+    <Line x1="12" y1="5" x2="12" y2="8" />
+    <Line x1="18" y1="15.5" x2="18" y2="19" />
+    <Line x1="18" y1="5" x2="18" y2="12" />
+  </D>
+);
+
+export const Drop = (p: P) => (
+  <D {...p}>
+    <Path d="M12 4 C12 4 6.5 10.5 6.5 14.5 A 5.5 5.5 0 0 0 17.5 14.5 C17.5 10.5 12 4 12 4 Z" />
+  </D>
+);
+
+export const RainCloud = (p: P) => (
+  <D {...p}>
+    <Path d="M7 12.5 A 3.2 3.2 0 0 1 7.6 6.2 A 4.2 4.2 0 0 1 15.6 6.6 A 3 3 0 0 1 16 12.5 Z" />
+    <Line x1="8.5" y1="15.5" x2="7.6" y2="18.5" />
+    <Line x1="12" y1="15.5" x2="11.1" y2="19" />
+    <Line x1="15.5" y1="15.5" x2="14.6" y2="18.5" />
+  </D>
+);
+
+export const WavesIcon = (p: P) => (
+  <D {...p}>
+    <Path d="M3 9.5 C5 7.5 7 7.5 9 9.5 C11 11.5 13 11.5 15 9.5 C17 7.5 19 7.5 21 9.5" />
+    <Path d="M3 14.5 C5 12.5 7 12.5 9 14.5 C11 16.5 13 16.5 15 14.5 C17 12.5 19 12.5 21 14.5" />
+  </D>
+);
+
+export const WindIcon = (p: P) => (
+  <D {...p}>
+    <Path d="M3 9 L13 9 A 2.4 2.4 0 1 0 10.6 6.6" />
+    <Path d="M3 13 L17 13 A 2.4 2.4 0 1 1 14.6 15.4" />
+    <Path d="M3 17 L9.5 17" />
+  </D>
+);
+
+export const Flame = (p: P) => (
+  <D {...p}>
+    <Path d="M12 3 C12 3 7 7.5 7 13 A 5 5 0 0 0 17 13 C17 9.5 14.5 8.5 14.5 8.5 C14.5 11 13 11.5 13 11.5 C13.5 8 12 3 12 3 Z" />
+  </D>
+);
+
+export const Bowl = (p: P) => (
+  <D {...p}>
+    <Path d="M4 11 A 8 8 0 0 0 20 11 Z" />
+    <Line x1="3.5" y1="11" x2="20.5" y2="11" />
+    <Path d="M9 7.8 A 3 1.4 0 0 0 15 7.8" />
+  </D>
+);
+
+export const Aura = (p: P) => (
+  <D {...p}>
+    <Circle cx="12" cy="12" r="2.8" />
+    <Path d="M5.5 12 A 6.5 6.5 0 0 1 18.5 12" />
+    <Path d="M3 12 A 9 9 0 0 1 21 12" opacity={0.5} />
+  </D>
+);
+
+export const ChimesIcon = (p: P) => (
+  <D {...p}>
+    <Line x1="6" y1="4.5" x2="20" y2="4.5" />
+    <Line x1="9" y1="5" x2="9" y2="15" />
+    <Line x1="13" y1="5" x2="13" y2="17" />
+    <Line x1="17" y1="5" x2="17" y2="13" />
+    <Circle cx="9" cy="16.5" r="1.3" fill={p.color} stroke="none" />
+    <Circle cx="13" cy="18.5" r="1.3" fill={p.color} stroke="none" />
+    <Circle cx="17" cy="14.5" r="1.3" fill={p.color} stroke="none" />
+  </D>
+);
+
 export const GoogleLogo = ({ size = 20 }: P) => (
   <Svg width={size} height={size} viewBox="0 0 24 24">
     <Path d="M21.6 12.2 C21.6 11.5 21.5 10.9 21.4 10.2 L12 10.2 L12 14 L17.4 14 C17.2 15.2 16.5 16.3 15.4 17 L15.4 19.5 L18.6 19.5 C20.5 17.7 21.6 15.2 21.6 12.2 Z" fill="#4285F4" />

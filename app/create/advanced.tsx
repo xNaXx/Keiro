@@ -8,13 +8,13 @@ import { MoodIcon } from '../../src/components/MoodIcon';
 import { MoodOrb } from '../../src/components/MoodOrb';
 import { BackButton, GlassIconButton, CreateHeaderActions, MicroLabel, PrimaryButton, Tap, Title } from '../../src/components/UI';
 import { PathTrail } from '../../src/components/PathTrail';
-import { ArrowLeft, Moon, SpeakerWave, Sun, Sunrise, Sunset } from '../../src/components/Icons';
+import { ArrowLeft, SpeakerWave } from '../../src/components/Icons';
 import { useApp } from '../../src/store';
 import { FONTS, RADII } from '../../src/theme';
-import { DURATIONS, ENERGIES, EnergyId, HZ_OPTIONS, MOMENTS, MOODS, MomentId, SoundType, VOICES, VoiceDensity, currentMoment } from '../../src/data';
+import { DURATIONS, MOODS, VOICES, currentMoment } from '../../src/data';
 import { speakSample } from '../../src/services/demoAudio';
 
-const STEPS = ['mood', 'moment', 'duration', 'voice', 'energy', 'density', 'sound'] as const;
+const STEPS = ['mood', 'duration', 'voice'] as const;
 
 /** Module-level so React never remounts it when the selection re-renders. */
 function Chip({
@@ -71,15 +71,10 @@ export default function AdvancedScreen() {
 
   const [step, setStep] = useState(0);
   const [mood, setMood] = useState<string>('calm');
-  const [moment, setMoment] = useState<MomentId>(currentMoment());
   const [duration, setDuration] = useState(5);
   const [voice, setVoice] = useState(preferredVoice);
-  const [energy, setEnergy] = useState<EnergyId>('serene');
-  const [density, setDensity] = useState<VoiceDensity>('medium');
-  const [soundType, setSoundType] = useState<SoundType>('ambient');
-  const [hzFreq, setHzFreq] = useState(528);
 
-  const titleKeys = ['adv_mood_title', 'adv_moment_title', 'adv_duration_title', 'adv_voice_title', 'adv_energy_title', 'adv_density_title', 'adv_sound_title'];
+  const titleKeys = ['adv_mood_title', 'adv_duration_title', 'adv_voice_title'];
   const canContinue = true;
 
   const next = () => {
@@ -88,19 +83,18 @@ export default function AdvancedScreen() {
       pathname: plan === 'free' ? '/create/ad' : '/create/generating',
       params: {
         mood,
-        moment,
+        // delivery is fixed to the calm style; the background sound is chosen
+        // live in the player mixer, so these stay at sensible defaults
+        moment: currentMoment(),
         duration: String(duration),
         voice,
-        energy,
-        density,
-        sound: soundType,
-        hz: soundType === 'hz' ? String(hzFreq) : undefined,
+        energy: 'serene',
+        density: 'medium',
+        sound: 'ambient',
         mode: 'advanced',
       },
     });
   };
-
-  const momentIcons = { sunrise: Sunrise, sun: Sun, sunset: Sunset, moon: Moon };
 
   return (
     <GradientBackground>
@@ -114,7 +108,7 @@ export default function AdvancedScreen() {
             </GlassIconButton>
           )}
           <View style={{ alignItems: 'center', gap: 4 }}>
-            <MicroLabel>{t(`${['mood_label', 'moment_label', 'time_label', 'voice_label', 'energy_label', 'density_label', 'sound_label'][step]}`)}</MicroLabel>
+            <MicroLabel>{t(`${['mood_label', 'time_label', 'voice_label'][step]}`)}</MicroLabel>
             <Text style={{ fontFamily: FONTS.sans, fontSize: 12, color: palette.textFaint }}>
               {t('adv_step', { a: step + 1, b: STEPS.length })}
             </Text>
@@ -139,20 +133,6 @@ export default function AdvancedScreen() {
 
           {step === 1 && (
             <View style={styles.wrapRow}>
-              {MOMENTS.map((m) => {
-                const Icon = momentIcons[m.icon];
-                return (
-                  <Chip key={m.id} selected={moment === m.id} onPress={() => setMoment(m.id)} grow palette={palette} dark={dark}>
-                    <Icon color={palette.text} size={18} />
-                    <Text style={[styles.chipText, { color: palette.text }]}>{t(m.tKey)}</Text>
-                  </Chip>
-                );
-              })}
-            </View>
-          )}
-
-          {step === 2 && (
-            <View style={styles.wrapRow}>
               {DURATIONS.map((d) => (
                 <Chip key={d} selected={duration === d} onPress={() => setDuration(d)} palette={palette} dark={dark}>
                   <Text style={{ fontFamily: FONTS.serif, fontSize: 24, color: palette.text }}>{d}</Text>
@@ -162,7 +142,7 @@ export default function AdvancedScreen() {
             </View>
           )}
 
-          {step === 3 && (
+          {step === 2 && (
             <View style={{ gap: 14 }}>
               {VOICES.map((v) => {
                 const locked = !!v.premium && plan === 'free';
@@ -217,79 +197,6 @@ export default function AdvancedScreen() {
             </View>
           )}
 
-          {step === 4 && (
-            <View style={{ gap: 14 }}>
-              {ENERGIES.map((e) => (
-                <Chip key={e.id} selected={energy === e.id} onPress={() => setEnergy(e.id)} grow palette={palette} dark={dark}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 16, color: palette.text }}>{t(e.tKey)}</Text>
-                    <Text style={{ fontFamily: FONTS.sans, fontSize: 13, color: palette.textFaint, marginTop: 2 }}>
-                      {t(e.dKey)}
-                    </Text>
-                  </View>
-                </Chip>
-              ))}
-            </View>
-          )}
-
-          {step === 5 && (
-            <View style={{ gap: 14 }}>
-              {(['low', 'medium', 'high'] as VoiceDensity[]).map((d) => (
-                <Chip key={d} selected={density === d} onPress={() => setDensity(d)} grow palette={palette} dark={dark}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 16, color: palette.text }}>
-                      {t(`density_${d}`)}
-                    </Text>
-                    <Text style={{ fontFamily: FONTS.sans, fontSize: 13, color: palette.textFaint, marginTop: 2 }}>
-                      {t(`density_${d}_d`)}
-                    </Text>
-                  </View>
-                </Chip>
-              ))}
-            </View>
-          )}
-
-          {step === 6 && (
-            <View style={{ gap: 14 }}>
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                {(['ambient', 'hz'] as SoundType[]).map((st) => (
-                  <View key={st} style={{ flex: 1, minWidth: 0 }}>
-                  <Chip selected={soundType === st} onPress={() => setSoundType(st)} grow palette={palette} dark={dark}>
-                    <View style={{ flex: 1, alignItems: 'center' }}>
-                      <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 15.5, color: palette.text }}>
-                        {t(st === 'ambient' ? 'sound_ambient' : 'sound_hz')}
-                      </Text>
-                      <Text style={{ fontFamily: FONTS.sans, fontSize: 12.5, color: palette.textFaint, marginTop: 2, textAlign: 'center' }}>
-                        {t(st === 'ambient' ? 'sound_ambient_d' : 'sound_hz_d')}
-                      </Text>
-                    </View>
-                  </Chip>
-                  </View>
-                ))}
-              </View>
-
-              {soundType === 'hz' && (
-                <View style={{ gap: 10, marginTop: 6 }}>
-                  {HZ_OPTIONS.map((h) => (
-                    <Chip key={h.freq} selected={hzFreq === h.freq} onPress={() => setHzFreq(h.freq)} grow palette={palette} dark={dark}>
-                      <View style={[styles.hzBadge, { borderColor: h.tint }]}>
-                        <Text style={{ fontFamily: FONTS.serif, fontSize: 15, color: palette.text }}>{h.freq}</Text>
-                        <Text style={{ fontFamily: FONTS.sans, fontSize: 9, color: palette.textFaint }}>Hz</Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 15, color: palette.text }}>
-                          {h.name[language]}
-                        </Text>
-                        <Text style={{ fontFamily: FONTS.sans, fontSize: 12.5, color: palette.textFaint, marginTop: 1 }}>
-                          {h.desc[language]}
-                        </Text>
-                      </View>
-                    </Chip>
-                  ))}
-                </View>
-              )}
-            </View>
-          )}
         </ScrollView>
 
         <View style={styles.footer}>

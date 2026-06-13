@@ -17,9 +17,12 @@ export interface SoundDef {
 
 const AUDIO: Record<string, any> = {
   water: require('../assets/sounds/water.mp3'),
-  wind: require('../assets/sounds/wind.mp3'),
-  waves: require('../assets/sounds/waves.mp3'),
   rain: require('../assets/sounds/rain.mp3'),
+  waves: require('../assets/sounds/waves.mp3'),
+  wind: require('../assets/sounds/wind.mp3'),
+  fire: require('../assets/sounds/fire.mp3'),
+  bowls: require('../assets/sounds/bowls.mp3'),
+  pad: require('../assets/sounds/pad.mp3'),
 };
 
 function audioUri(key: string): string {

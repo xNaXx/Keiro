@@ -8,15 +8,27 @@ import { FigureBackdrop, FigureName } from '../src/components/FigureArt';
 import { RingFlower } from '../src/components/RingFlower';
 import { Sparkle } from '../src/components/Sparkle';
 import { BackButton, MicroLabel, PrimaryButton, SettingsButton, Tap, ThemeToggle } from '../src/components/UI';
-import { Check, Download, MusicNote, Pause, Play, SkipBack, SkipFwd, VoiceWave } from '../src/components/Icons';
+import { Aura, Bowl, Check, ChimesIcon, Download, Drop, Equalizer, Flame, MusicNote, Pause, Play, RainCloud, SkipBack, SkipFwd, VoiceWave, WavesIcon, WindIcon } from '../src/components/Icons';
+
+/** Pictogram per ambient layer (keyed by catalog key). */
+const SOUND_ICON: Record<string, (p: { size?: number; color?: string }) => React.ReactElement> = {
+  water: Drop,
+  rain: RainCloud,
+  waves: WavesIcon,
+  wind: WindIcon,
+  fire: Flame,
+  bowls: Bowl,
+  pad: Aura,
+  chimes: ChimesIcon,
+};
 import { useApp } from '../src/store';
 import { FONTS, MOOD_PALETTES, RADII } from '../src/theme';
-import { HZ_OPTIONS, MOODS, VOICES } from '../src/data';
+import { MOODS, VOICES } from '../src/data';
 import { findPrebuilt } from '../src/prebuilt';
 import { SOUNDS } from '../src/sounds';
 import { hasElevenLabsKey } from '../src/services/elevenlabs';
 import { getVolumes, onSpeaking, renderAmbientWav, setVoiceVolume, speakLine, stopSpeech } from '../src/services/demoAudio';
-import { fadeOutSoundscape, getMix, setHz, setLayer, setSoundscapeVolume, startSoundscape, stopSoundscape } from '../src/services/soundscape';
+import { fadeOutSoundscape, getMix, setLayer, setSoundscapeVolume, startSoundscape, stopSoundscape } from '../src/services/soundscape';
 import { VoiceOrb } from '../src/components/VoiceOrb';
 import { Brand } from '../src/components/KeiroLogo';
 
@@ -495,10 +507,8 @@ export default function PlayerScreen() {
                   palette={palette}
                 />
               </View>
-              <Tap onPress={() => setMixOpen((o) => !o)} hitSlop={8} scaleTo={0.9}>
-                <Text style={{ fontFamily: FONTS.sansMedium, fontSize: 12, color: mixOpen ? palette.text : palette.textFaint }}>
-                  {t('mix_label')}
-                </Text>
+              <Tap onPress={() => setMixOpen((o) => !o)} hitSlop={8} scaleTo={0.88}>
+                <Equalizer color={mixOpen ? palette.line : palette.textSoft} size={20} />
               </Tap>
             </View>
           </View>
@@ -508,21 +518,22 @@ export default function PlayerScreen() {
               {SOUNDS.map((s) => {
                 const lay = mix.layers.find((l) => l.key === s.key);
                 const on = lay?.enabled ?? false;
+                const Icon = SOUND_ICON[s.key] ?? Aura;
                 return (
                   <View key={s.key} style={styles.mixRow}>
                     <Tap
                       onPress={() => {
-                        const enabled = !on;
-                        setLayer(s.key, enabled, lay?.volume ?? 0.6);
+                        setLayer(s.key, !on, lay?.volume ?? 0.6);
                         setMix(getMix());
                       }}
                       hitSlop={6}
-                      scaleTo={0.9}
+                      scaleTo={0.85}
                     >
-                      <View style={[styles.mixDot, { borderColor: s.tint, backgroundColor: on ? s.tint : 'transparent' }]} />
+                      <View style={styles.mixIcon}>
+                        <Icon color={on ? s.tint : palette.textFaint} size={22} />
+                      </View>
                     </Tap>
-                    <Text style={[styles.mixName, { color: on ? palette.text : palette.textFaint }]}>{s.name[language]}</Text>
-                    <View style={{ flex: 1, opacity: on ? 1 : 0.4 }}>
+                    <View style={{ flex: 1, opacity: on ? 1 : 0.45 }}>
                       <VolumeSlider
                         icon={null}
                         value={lay?.volume ?? 0.6}
@@ -536,46 +547,6 @@ export default function PlayerScreen() {
                   </View>
                 );
               })}
-              <View style={styles.mixRow}>
-                <Tap
-                  onPress={() => {
-                    const next = mix.hzFreq == null ? meditation.config.hzFreq ?? 528 : null;
-                    setHz(next, mix.hzVol);
-                    setMix(getMix());
-                  }}
-                  hitSlop={6}
-                  scaleTo={0.9}
-                >
-                  <View style={[styles.mixDot, { borderColor: palette.accent, backgroundColor: mix.hzFreq != null ? palette.accent : 'transparent' }]} />
-                </Tap>
-                <Text style={[styles.mixName, { color: mix.hzFreq != null ? palette.text : palette.textFaint }]}>
-                  {mix.hzFreq != null ? `${mix.hzFreq} Hz` : 'Hz'}
-                </Text>
-                <View style={styles.hzChips}>
-                  {HZ_OPTIONS.map((h) => (
-                    <Tap
-                      key={h.freq}
-                      onPress={() => {
-                        setHz(h.freq, mix.hzVol);
-                        setMix(getMix());
-                      }}
-                      hitSlop={4}
-                      scaleTo={0.9}
-                    >
-                      <Text
-                        style={{
-                          fontFamily: FONTS.sans,
-                          fontSize: 11,
-                          color: mix.hzFreq === h.freq ? palette.text : palette.textFaint,
-                          opacity: mix.hzFreq === h.freq ? 1 : 0.6,
-                        }}
-                      >
-                        {h.freq}
-                      </Text>
-                    </Tap>
-                  ))}
-                </View>
-              </View>
             </View>
           )}
 
@@ -641,11 +612,9 @@ const styles = StyleSheet.create({
   waveTouch: { flex: 1, paddingVertical: 8, justifyContent: 'center', cursor: 'pointer' } as any,
   wave: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 26 },
   time: { fontFamily: FONTS.sans, fontSize: 12 },
-  mixer: { marginTop: 12, paddingTop: 12, gap: 10, borderTopWidth: StyleSheet.hairlineWidth },
-  mixRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  mixDot: { width: 16, height: 16, borderRadius: 8, borderWidth: 1.5 },
-  mixName: { fontFamily: FONTS.sans, fontSize: 13, width: 64 },
-  hzChips: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
+  mixer: { marginTop: 12, paddingTop: 12, gap: 8, borderTopWidth: StyleSheet.hairlineWidth },
+  mixRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  mixIcon: { width: 30, alignItems: 'center', justifyContent: 'center' },
   controls: { flexDirection: 'row', gap: 10, marginTop: 16 },
   tile: {
     height: 64,
