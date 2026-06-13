@@ -31,6 +31,8 @@ export type PrebuiltMeditation = Meditation & { voiceName: string };
 const AUDIO: Record<string, any> = {
   'calm-belen-es': require('../assets/meditations/calm-belen-es.mp3'),
   'calm-victor-es': require('../assets/meditations/calm-victor-es.mp3'),
+  'calm-eve-en': require('../assets/meditations/calm-eve-en.mp3'),
+  'calm-steve-en': require('../assets/meditations/calm-steve-en.mp3'),
 };
 
 /** Resolve a bundled audio module to a playable URI (web string, native asset). */
@@ -71,9 +73,9 @@ function toMeditation(e: PrebuiltEntry, language: Language): PrebuiltMeditation 
   };
 }
 
-/** All pre-generated meditations, titles localized. */
+/** Pre-generated meditations for the current language, titles localized. */
 export function getPrebuilt(language: Language): PrebuiltMeditation[] {
-  return PREBUILT_CATALOG.map((e) => toMeditation(e, language));
+  return PREBUILT_CATALOG.filter((e) => e.lang === language).map((e) => toMeditation(e, language));
 }
 
 /** Look one up by id (used by the player when it isn't in the user's sessions). */
@@ -90,6 +92,8 @@ export function findPrebuilt(id: string, language: Language): PrebuiltMeditation
 export function findSiblingVoice(id: string, language: Language): PrebuiltMeditation | null {
   const cur = PREBUILT_CATALOG.find((x) => x.id === id);
   if (!cur) return null;
-  const sib = PREBUILT_CATALOG.find((x) => x.mood === cur.mood && x.gender !== cur.gender);
+  const sib = PREBUILT_CATALOG.find(
+    (x) => x.mood === cur.mood && x.lang === cur.lang && x.gender !== cur.gender
+  );
   return sib ? toMeditation(sib, language) : null;
 }
