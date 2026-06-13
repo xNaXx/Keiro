@@ -90,4 +90,6 @@ async function render(svg, size, file) {
   await render(foregroundSvg(9.5), 1024, 'android-icon-foreground.png');
   await render(backgroundSvg(), 1024, 'android-icon-background.png');
   await render(monochromeSvg(9.5), 1024, 'android-icon-monochrome.png');
+  // splash: cream star on transparent, shown over the violet splash bg
+  await render(foregroundSvg(10), 1024, 'splash-icon.png');
 })();

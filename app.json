@@ -8,6 +8,11 @@
     "userInterfaceStyle": "automatic",
     "scheme": "keiro",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#241546"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.keiro"
